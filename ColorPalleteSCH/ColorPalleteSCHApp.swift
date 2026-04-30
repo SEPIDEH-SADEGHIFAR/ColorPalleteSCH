@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct ColorPalleteSCHApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            // Point this to HomeView, NOT ContentView
+            HomeView()
         }
+        .modelContainer(for: SavedPalette.self)
     }
 }
