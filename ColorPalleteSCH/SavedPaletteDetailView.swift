@@ -4,7 +4,6 @@
 //
 //  Created by seyedeh sepideh sadeghi far
 //
-
 import SwiftUI
 import SwiftData
 
@@ -12,55 +11,120 @@ struct SavedPaletteDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Bindable var palette: SavedPalette
     
-    // State to control the sheets
     @State private var isAddingColor = false
-    @State private var colorToExport: SavedColor? // For single color export
-    @State private var showPaletteExport = false    // For full palette export
+    @State private var colorToExport: SavedColor?
+    @State private var showPaletteExport = false
 
     var body: some View {
-        List {
-            Section(header: Text("Colors")) {
-                ForEach(palette.colors) { color in
-                    HStack(spacing: 16) {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: color.hex))
-                            .frame(width: 50, height: 50)
-                            .shadow(radius: 2)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.gray.opacity(0.2), lineWidth: 0.5) // Thinner border
-                            )
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(color.name).font(.headline)
-                            Text(color.hex).font(.caption.monospaced()).foregroundStyle(.secondary)
+        ScrollView {
+            VStack(spacing: 0) {
+                // 1. Full Width Edge-to-Edge Color Header
+                HStack(spacing: 0) {
+                    ForEach(palette.colors) { color in
+                        Color(hex: color.hex)
+                    }
+                }
+                .frame(height: 220)
+                
+                VStack(alignment: .leading, spacing: 24) {
+                    // 2. Info Header & Export Buttons
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("AI GENERATED • RECENTLY")
+                                .font(.caption.bold())
+                                .foregroundColor(.gray)
+                            
+                            Text(palette.title)
+                                .font(.system(size: 32, weight: .heavy))
+                            
+                            Text("\(palette.colors.count) colors")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
                         
                         Spacer()
+                        
+                        HStack(spacing: 12) {
+                            // Full Palette Export Button
+                            Button(action: { showPaletteExport = true }) {
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                    .frame(width: 44, height: 44)
+                                    .background(Color.gray.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                        }
                     }
-                    .padding(.vertical, 4)
-                    .contentShape(Rectangle()) // Makes the whole row tappable
-                    .onTapGesture {
-                        colorToExport = color // Open single color sticker sheet
+                    
+                    Divider()
+                    
+                    // 3. Clean Color List
+                    VStack(spacing: 16) {
+                        ForEach(palette.colors) { color in
+                            HStack(spacing: 16) {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(hex: color.hex))
+                                    .frame(width: 56, height: 56)
+                                    .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray.opacity(0.1), lineWidth: 1))
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(color.name)
+                                        .font(.headline.bold())
+                                    Text(color.hex.uppercased())
+                                        .font(.subheadline.monospaced())
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                Spacer()
+                                
+                                // Copy Hex Button
+                                Button(action: {
+                                    UIPasteboard.general.string = color.hex
+                                }) {
+                                    Image(systemName: "doc.on.doc")
+                                        .foregroundColor(.gray)
+                                        .frame(width: 40, height: 40)
+                                        .background(Color.gray.opacity(0.1))
+                                        .clipShape(Circle())
+                                }
+                            }
+                            .contentShape(Rectangle()) // Makes row tappable
+                            .onTapGesture {
+                                colorToExport = color // Open single color export
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) { deleteColor(color) } label: {
+                                    Label("Delete Color", systemImage: "trash")
+                                }
+                            }
+                            
+                            Divider()
+                        }
+                        
+                        // 4. Dashed "Add Color" Button
+                        Button(action: { isAddingColor = true }) {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text("Add a color")
+                            }
+                            .font(.headline)
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity, minHeight: 60)
+                            .background(Color.gray.opacity(0.05))
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 2, dash: [6]))
+                            )
+                        }
+                        .padding(.top, 8)
                     }
                 }
-                .onDelete(perform: deleteColor)
+                .padding(24)
             }
         }
-        .navigationTitle(palette.title)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: { showPaletteExport = true }) {
-                    Label("Export Palette", systemImage: "square.and.arrow.up.on.square")
-                }
-            }
-            
-            ToolbarItem(placement: .secondaryAction) {
-                Button(action: { isAddingColor = true }) {
-                    Label("Add Color", systemImage: "plus")
-                }
-            }
-        }
+        .ignoresSafeArea(edges: .top) // Pushes colors into the notch/status bar area
         .sheet(isPresented: $isAddingColor) {
             AddColorView(palette: palette)
         }
@@ -72,14 +136,10 @@ struct SavedPaletteDetailView: View {
         }
     }
 
-    private func deleteColor(at offsets: IndexSet) {
-        for index in offsets {
-            let colorToDelete = palette.colors[index]
-            modelContext.delete(colorToDelete)
-        }
+    private func deleteColor(_ color: SavedColor) {
+        modelContext.delete(color)
     }
 }
-
 // MARK: - Export Styles Enum (Full Palette)
 
 enum PaletteExportStyle: String, CaseIterable, Identifiable {
