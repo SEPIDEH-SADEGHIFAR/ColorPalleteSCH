@@ -4,6 +4,7 @@ import SwiftData
 enum ActiveSheet: Identifiable {
     case generator
     case manual
+    case imageImport // NEW CASE
     var id: Int { hashValue }
 }
 
@@ -140,6 +141,7 @@ struct HomeView: View {
                 switch item {
                 case .generator: ContentView()
                 case .manual: ManualPaletteView()
+                case .imageImport: ImageColorExtractorView() // Route to the new view
                 }
             }
             .sheet(isPresented: $showAddMenu) {
@@ -266,6 +268,7 @@ struct AddPaletteMenuSheet: View {
             
             MenuRow(icon: "photo.badge.arrow.down.fill", color: .green, title: "Import from Image", subtitle: "Extract colors from a photo") {
                 dismiss() // Placeholder
+                activeSheet = .imageImport // Trigger the import view
             }
             
             Button(action: { dismiss() }) {
