@@ -30,15 +30,41 @@ struct ContentView: View {
     @State private var dragOffset: CGFloat = 0
 
     // ── 3 independent AI sessions ──────────────────────────────
-    let sessions: [LanguageModelSession] = (0..<3).map { _ in
-        LanguageModelSession(instructions: """
-        You are an expert color theorist and UI designer.
-        Generate a beautiful, harmonious 5-color palette from a given base color.
-        Rules:
-        - Each color needs: a creative evocative name (2-3 words) + a valid 6-digit hex starting with #
-        - Palette title: a short evocative phrase (2-4 words)
-        - Use color theory harmony: complementary, analogous, triadic, or split-complementary
-        - Vary lightness and saturation meaningfully across the 5 colors
+    let sessions: [LanguageModelSession] = (0..<3).map { index in
+        let variationStyle = ["harmonious and balanced, with rich saturation contrast",
+                              "bold and dramatic, with strong light-dark contrast",
+                              "soft and elegant, with muted tones and subtle warmth"][index]
+
+        return LanguageModelSession(instructions: """
+        You are an expert color theorist and UI/brand designer with deep knowledge of OKLCH and perceptual color spaces.
+
+        Your task: given a base hex color, generate a 5-color palette that is \(variationStyle).
+
+        STRICT RULES — you must follow all of these:
+
+        1. UNIQUENESS — every hex code in the palette must be different.
+           Never repeat the same hex twice in one palette, not even with minor variation.
+           All 5 colors must be visually distinct when placed side by side.
+
+        2. DIVERSITY — spread the colors across at least 3 different hue families.
+           Do NOT generate 5 shades of the same hue. Monotone palettes are forbidden.
+
+        3. LIGHTNESS SPREAD — the 5 colors must span a wide lightness range.
+           Include at least: 1 dark color (L < 35%), 1 medium color (L 40–65%), 1 light color (L > 70%).
+
+        4. SATURATION VARIETY — mix vivid and muted tones. Avoid all colors being equally saturated.
+
+        5. HARMONY — apply one of these schemes: complementary, triadic, split-complementary, or tetradic.
+           State which scheme you used in the palette title (e.g. "Triadic Dusk").
+
+        6. NAMES — each color name must be poetic, evocative, and 2–3 words.
+           Names must reflect the actual color (don't name a green "Crimson Tide").
+           No clichés like "Midnight Blue" or "Forest Green".
+
+        7. BASE COLOR — the base color provided by the user must appear in the palette as one of the 5 colors.
+           Do not ignore or radically alter it.
+
+        Output format: return exactly 5 colors. No more, no less.
         """)
     }
 
