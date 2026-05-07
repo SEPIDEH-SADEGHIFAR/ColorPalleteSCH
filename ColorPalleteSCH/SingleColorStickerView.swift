@@ -8,10 +8,6 @@
 import SwiftUI
 import SwiftData
 
-// ═════════════════════════════════════════════════════════════
-// MARK: - SINGLE COLOR EXPORT
-// ═════════════════════════════════════════════════════════════
-
 enum SingleColorExportStyle: String, CaseIterable, Identifiable {
     case swatch   = "Swatch"
     case pantone  = "Pantone"

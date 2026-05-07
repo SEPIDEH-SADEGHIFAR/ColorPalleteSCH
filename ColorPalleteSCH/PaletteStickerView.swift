@@ -8,10 +8,6 @@
 import SwiftUI
 import SwiftData
 
-// ═════════════════════════════════════════════════════════════
-// MARK: - PALETTE EXPORT
-// ═════════════════════════════════════════════════════════════
-
 enum PaletteExportStyle: String, CaseIterable, Identifiable {
     case modernStripes = "Stripes"
     case editorial     = "Editorial"

@@ -7,10 +7,6 @@
 import SwiftUI
 import SwiftData
 
-// ═════════════════════════════════════════════════════════════
-// MARK: - EDIT COLOR SHEET
-// ═════════════════════════════════════════════════════════════
-
 struct EditColorSheet: View {
     let color: SavedColor
     @Environment(\.dismiss) private var dismiss

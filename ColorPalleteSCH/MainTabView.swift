@@ -9,10 +9,6 @@
 import SwiftUI
 import SwiftData
 
-// ═════════════════════════════════════════════════════════════
-// MARK: - MAIN TAB VIEW
-// ═════════════════════════════════════════════════════════════
-
 struct MainTabView: View {
     @State private var selectedTab: Tab = .home
     
