@@ -782,6 +782,7 @@ enum ColorNamer {
 
 struct CameraPickerView: UIViewControllerRepresentable {
     let onCapture: (UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss // Let SwiftUI handle dismissal safely
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
@@ -792,24 +793,29 @@ struct CameraPickerView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
 
-    func makeCoordinator() -> Coordinator { Coordinator(onCapture: onCapture) }
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let onCapture: (UIImage) -> Void
-        init(onCapture: @escaping (UIImage) -> Void) { self.onCapture = onCapture }
+        let parent: CameraPickerView
+        
+        init(_ parent: CameraPickerView) {
+            self.parent = parent
+        }
 
         func imagePickerController(
             _ picker: UIImagePickerController,
             didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
         ) {
             if let image = info[.originalImage] as? UIImage {
-                onCapture(image)
+                parent.onCapture(image)
             }
-            picker.dismiss(animated: true)
+            // We DO NOT call picker.dismiss here anymore.
+            // The onCapture closure handles setting showCamera = false!
         }
 
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-            picker.dismiss(animated: true)
+            // Safely use SwiftUI's native dismiss if the user hits "Cancel"
+            parent.dismiss()
         }
     }
 }

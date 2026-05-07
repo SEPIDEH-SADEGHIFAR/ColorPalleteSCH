@@ -10,7 +10,7 @@ import SwiftData
 
 enum SingleColorExportStyle: String, CaseIterable, Identifiable {
     case swatch   = "Swatch"
-    case pantone  = "Pantone"
+    case studio   = "Studio"
     case arch     = "Arch"
     case butter   = "Square"
     case brutal   = "Brutal"
@@ -27,7 +27,7 @@ enum SingleColorExportStyle: String, CaseIterable, Identifiable {
 struct ExportColorPreviewView: View {
     let color: SavedColor
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedStyle: SingleColorExportStyle = .pantone
+    @State private var selectedStyle: SingleColorExportStyle = .studio
     @State private var renderedImage: Image?
 
     var body: some View {
@@ -109,7 +109,7 @@ struct SingleColorStickerView: View {
         Group {
             switch style {
             case .swatch:   ClassicSwatchSingleColorStickerView(color: color)
-            case .pantone:  PantoneColorSticker(color: color)
+            case .studio:   StudioColorSticker(color: color)
             case .arch:     ArchColorSticker(color: color)
             case .butter:   ButterColorSticker(color: color)
             case .brutal:   BrutalColorSticker(color: color)
@@ -126,7 +126,7 @@ struct SingleColorStickerView: View {
     }
 }
 
-// DESIGN 1: Classic Swatch (Perfectly Minimal Pantone Style)
+// DESIGN 1: Classic Swatch (Perfectly Minimal Studio Style)
 struct ClassicSwatchSingleColorStickerView: View {
     let color: SavedColor
     
@@ -158,8 +158,8 @@ struct ClassicSwatchSingleColorStickerView: View {
     }
 }
 
-// ── Color Sticker 1: Pantone ─────────────────────────────────
-struct PantoneColorSticker: View {
+// ── Color Sticker 1: Studio ─────────────────────────────────
+struct StudioColorSticker: View {
     let color: SavedColor
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

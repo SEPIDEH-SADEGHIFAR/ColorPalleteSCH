@@ -6,7 +6,7 @@ import SwiftData
 struct SavedPaletteDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Bindable var palette: SavedPalette
+    @Bindable var palette: SavedPalette // This makes live-editing possible!
 
     @State private var isAddingColor = false
     @State private var colorToExport: SavedColor?
@@ -42,19 +42,27 @@ struct SavedPaletteDetailView: View {
                                     .font(.caption.bold())
                                     .foregroundColor(.gray)
                                 
-                                Text(palette.title)
-                                    .font(.system(size: 32, weight: .heavy, design: .rounded))
-                                    .foregroundStyle(Color("AppText")) // Adaptive Text
-                                    .kerning(-0.5)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.8)
+                                // ✏️ EDITABLE TITLE SECTION
+                                HStack(spacing: 8) {
+                                    TextField("Palette Name", text: $palette.title)
+                                        .font(.system(size: 32, weight: .heavy, design: .rounded))
+                                        .foregroundStyle(Color("AppText")) // Adaptive Text
+                                        .kerning(-0.5)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                        .submitLabel(.done)
+                                    
+                                    Image(systemName: "pencil")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundStyle(Color("AppText").opacity(0.25))
+                                }
                                 
                                 Text("\(palette.colors.count) colors")
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                             }
                             
-                            Spacer()
+                            Spacer(minLength: 16)
                             
                             // Full Palette Export Button
                             Button(action: { showPaletteExport = true }) {
