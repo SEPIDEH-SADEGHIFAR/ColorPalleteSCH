@@ -35,7 +35,7 @@ struct HomeView: View {
                     // 1. App Header
                     HStack {
                         Text("Palettes")
-                            .font(.system(size: 36, weight: .heavy, design: .default))
+                            .font(.system(size: 38, weight: .bold, design: .rounded))
                             .foregroundStyle(Color("AppText"))
                         
                         Spacer()
@@ -113,7 +113,7 @@ struct HomeView: View {
                                 }
                                 
                                 // Dashed "New" Card at the end of the grid
-                                Button(action: { showAddMenu = true }) {
+                               /* Button(action: { showAddMenu = true }) {
                                     VStack(spacing: 12) {
                                         Image(systemName: "plus")
                                             .font(.title)
@@ -129,7 +129,7 @@ struct HomeView: View {
                                         RoundedRectangle(cornerRadius: 24)
                                             .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 2, dash: [8]))
                                     )
-                                }
+                                }*/
                             }
                             .padding(.horizontal)
                         }
@@ -174,7 +174,7 @@ struct RecentPaletteCard: View {
             // Right side: Info
             VStack(alignment: .leading, spacing: 10) {
                 Text(palette.title)
-                    .font(.title3)
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
                     .fontWeight(.bold)
                     .foregroundStyle(Color("AppText")) // Adaptive
                 
@@ -224,7 +224,7 @@ struct ModernPaletteCard: View {
             // Bottom Info Area
             VStack(alignment: .leading, spacing: 4) {
                 Text(palette.title)
-                    .font(.headline)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .fontWeight(.bold)
                     .foregroundStyle(Color("AppText")) // Adaptive
                     .lineLimit(1)

@@ -110,7 +110,7 @@ struct ImageColorExtractorView: View {
             Spacer()
 
             // Teal orb
-            ZStack {
+           /* ZStack {
                 Circle()
                     .fill(RadialGradient(
                         colors: [Color(hex: "#2DD4BF").opacity(0.45), .clear],
@@ -131,7 +131,7 @@ struct ImageColorExtractorView: View {
                             .font(.system(size: 17, weight: .medium))
                             .foregroundStyle(.white)
                     )
-            }
+            }*/
         }
         .padding(.top, 18)
         .opacity(animateIn ? 1 : 0)

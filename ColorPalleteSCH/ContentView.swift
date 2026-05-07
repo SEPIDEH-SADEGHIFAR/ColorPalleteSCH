@@ -129,7 +129,7 @@ struct ContentView: View {
             }
             Spacer()
             // Pulsing orb — reacts to selected color
-            ZStack {
+           /* ZStack {
                 Circle()
                     .fill(RadialGradient(
                         colors: [selectedColor.opacity(0.55), .clear],
@@ -158,7 +158,7 @@ struct ContentView: View {
                             .font(.system(size: 18, weight: .medium))
                             .foregroundStyle(.white)
                     )
-            }
+            }*/
         }
         .padding(.top, 20)
     }

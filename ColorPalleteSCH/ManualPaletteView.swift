@@ -19,7 +19,7 @@ struct ManualPaletteView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "#0D0D0D").ignoresSafeArea()
+                Color("AppBackground").ignoresSafeArea() // Adaptive Background
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -45,15 +45,14 @@ struct ManualPaletteView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.55))
+                            .foregroundStyle(Color("AppText").opacity(0.55)) // Adaptive
                             .frame(width: 30, height: 30)
-                            .background(Color.white.opacity(0.09))
+                            .background(Color("AppText").opacity(0.09)) // Adaptive
                             .clipShape(Circle())
                     }
                 }
             }
-            .toolbarBackground(Color(hex: "#0D0D0D"), for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(Color("AppBackground"), for: .navigationBar) // Adaptive Toolbar
         }
         .onAppear {
             withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) {
@@ -73,33 +72,10 @@ struct ManualPaletteView: View {
                     .foregroundStyle(Color(hex: "#FF8C42"))
                 Text("Build Your\nPalette")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("AppText")) // Adaptive Text
                     .lineSpacing(0)
             }
             Spacer()
-            // Decorative brush icon orb
-            ZStack {
-                Circle()
-                    .fill(RadialGradient(
-                        colors: [Color(hex: "#FF8C42").opacity(0.45), .clear],
-                        center: .center, startRadius: 0, endRadius: 44
-                    ))
-                    .frame(width: 88, height: 88)
-                    .blur(radius: 16)
-
-                Circle()
-                    .stroke(Color(hex: "#FF8C42").opacity(0.25), lineWidth: 1)
-                    .frame(width: 58, height: 58)
-
-                Circle()
-                    .fill(Color(hex: "#FF8C42"))
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Image(systemName: "paintbrush.fill")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundStyle(.white)
-                    )
-            }
         }
         .padding(.top, 18)
         .opacity(animateIn ? 1 : 0)
@@ -114,18 +90,18 @@ struct ManualPaletteView: View {
             Text("LIVE PREVIEW")
                 .font(.system(size: 9, weight: .bold))
                 .tracking(2.5)
-                .foregroundStyle(Color.white.opacity(0.28))
+                .foregroundStyle(Color("AppText").opacity(0.4))
 
             ZStack(alignment: .bottomLeading) {
                 // Color stripes
                 if slots.isEmpty {
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.06))
+                        .fill(Color(uiColor: .secondarySystemGroupedBackground))
                         .frame(height: 100)
                         .overlay(
                             Text("Add colors below")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color.white.opacity(0.2))
+                                .foregroundStyle(Color("AppText").opacity(0.4))
                         )
                 } else {
                     HStack(spacing: 0) {
@@ -134,7 +110,7 @@ struct ManualPaletteView: View {
                                 .overlay(
                                     // Highlight active slot
                                     slot.id == activeSlotID
-                                    ? Color.white.opacity(0.18) : Color.clear
+                                    ? Color.white.opacity(0.25) : Color.clear
                                 )
                         }
                     }
@@ -142,13 +118,14 @@ struct ManualPaletteView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 20))
                     .overlay(
                         RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.white.opacity(0.09), lineWidth: 1)
+                            .stroke(Color("AppText").opacity(0.09), lineWidth: 1)
                     )
+                    
                     // Palette title overlay
                     if !title.isEmpty {
                         Text(title)
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(.white) // Keep white for contrast over colors
                             .shadow(color: .black.opacity(0.5), radius: 6)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 10)
@@ -158,7 +135,7 @@ struct ManualPaletteView: View {
             .animation(.spring(response: 0.35), value: slots.map(\.hex))
         }
         .opacity(animateIn ? 1 : 0)
-        .animation(.spring(response: 0.5).delay(0.1), value: animateIn)
+        .animation(.spring(response: 0.5).delay(0.15), value: animateIn)
     }
 
     // MARK: - Title Field
@@ -168,7 +145,7 @@ struct ManualPaletteView: View {
             Text("PALETTE NAME")
                 .font(.system(size: 9, weight: .bold))
                 .tracking(2.5)
-                .foregroundStyle(Color.white.opacity(0.28))
+                .foregroundStyle(Color("AppText").opacity(0.4))
 
             HStack(spacing: 12) {
                 Image(systemName: "pencil")
@@ -177,7 +154,7 @@ struct ManualPaletteView: View {
 
                 TextField("e.g. Sunset Over Rome", text: $title)
                     .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("AppText")) // Adaptive Text
                     .tint(Color(hex: "#FF8C42"))
                     .focused($titleFocused)
                     .submitLabel(.done)
@@ -188,7 +165,7 @@ struct ManualPaletteView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 15))
-                            .foregroundStyle(Color.white.opacity(0.3))
+                            .foregroundStyle(Color("AppText").opacity(0.3))
                     }
                 }
             }
@@ -196,13 +173,13 @@ struct ManualPaletteView: View {
             .padding(.vertical, 14)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white.opacity(0.06))
+                    .fill(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Card
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 titleFocused
                                     ? Color(hex: "#FF8C42").opacity(0.5)
-                                    : Color.white.opacity(0.08),
+                                    : Color("AppText").opacity(0.08),
                                 lineWidth: 1.2
                             )
                     )
@@ -221,11 +198,11 @@ struct ManualPaletteView: View {
                 Text("COLORS")
                     .font(.system(size: 9, weight: .bold))
                     .tracking(2.5)
-                    .foregroundStyle(Color.white.opacity(0.28))
+                    .foregroundStyle(Color("AppText").opacity(0.4))
                 Spacer()
                 Text("\(slots.count) / 8")
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.25))
+                    .foregroundStyle(Color("AppText").opacity(0.4))
             }
 
             VStack(spacing: 10) {
@@ -280,14 +257,14 @@ struct ManualPaletteView: View {
             }
             .foregroundStyle(
                 slots.count >= 8
-                    ? Color.white.opacity(0.2)
+                    ? Color("AppText").opacity(0.3)
                     : Color(hex: "#FF8C42")
             )
             .frame(maxWidth: .infinity)
             .frame(height: 50)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white.opacity(0.04))
+                    .fill(Color(uiColor: .secondarySystemGroupedBackground))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
                             .strokeBorder(
@@ -295,7 +272,7 @@ struct ManualPaletteView: View {
                             )
                             .foregroundStyle(
                                 slots.count >= 8
-                                    ? Color.white.opacity(0.08)
+                                    ? Color("AppText").opacity(0.08)
                                     : Color(hex: "#FF8C42").opacity(0.35)
                             )
                     )
@@ -319,7 +296,7 @@ struct ManualPaletteView: View {
             .foregroundStyle(
                 savedSuccessfully
                     ? Color(hex: "#34C759")
-                    : (canSave ? Color(hex: "#0D0D0D") : Color.white.opacity(0.25))
+                    : (canSave ? Color("AppBackground") : Color("AppText").opacity(0.3)) // Adaptive Text
             )
             .frame(maxWidth: .infinity)
             .frame(height: 58)
@@ -333,14 +310,13 @@ struct ManualPaletteView: View {
                                     .stroke(Color(hex: "#34C759").opacity(0.4), lineWidth: 1.5)
                             )
                     } else if canSave {
-                        RoundedRectangle(cornerRadius: 18)
-                            .fill(.white)
+                        RoundedRectangle(cornerRadius: 18).fill(Color("AppText")) // Adaptive Solid
                     } else {
                         RoundedRectangle(cornerRadius: 18)
-                            .fill(Color.white.opacity(0.07))
+                            .fill(Color("AppText").opacity(0.07))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 18)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                    .stroke(Color("AppText").opacity(0.1), lineWidth: 1)
                             )
                     }
                 }
@@ -399,7 +375,7 @@ struct ColorSlotRow: View {
                     set: { newColor in
                         if let hex = newColor.toHex() {
                             slot.hex = hex
-                            hexInput = hex
+                            hexInput = String(hex.dropFirst())
                         }
                     }
                 ))
@@ -419,7 +395,7 @@ struct ColorSlotRow: View {
                 // Name field
                 TextField("Color name", text: $slot.name)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("AppText")) // Adaptive
                     .tint(Color(hex: "#FF8C42"))
 
                 Spacer()
@@ -428,9 +404,9 @@ struct ColorSlotRow: View {
                 Button(action: onTap) {
                     Image(systemName: isActive ? "chevron.up" : "chevron.down")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color.white.opacity(0.35))
+                        .foregroundStyle(Color("AppText").opacity(0.5)) // Adaptive
                         .frame(width: 28, height: 28)
-                        .background(Color.white.opacity(0.07))
+                        .background(Color("AppText").opacity(0.07))
                         .clipShape(Circle())
                 }
 
@@ -452,7 +428,7 @@ struct ColorSlotRow: View {
             // Expanded hex editor
             if isActive {
                 Divider()
-                    .background(Color.white.opacity(0.07))
+                    .background(Color("AppText").opacity(0.1))
                     .padding(.horizontal, 14)
 
                 HStack(spacing: 10) {
@@ -461,16 +437,16 @@ struct ColorSlotRow: View {
                         .fill(Color(hex: slot.hex))
                         .frame(width: 22, height: 22)
                         .overlay(
-                            Circle().stroke(Color.white.opacity(0.15), lineWidth: 1)
+                            Circle().stroke(Color.gray.opacity(0.15), lineWidth: 1)
                         )
 
                     Text("#")
                         .font(.system(size: 15, weight: .bold, design: .monospaced))
-                        .foregroundStyle(Color.white.opacity(0.35))
+                        .foregroundStyle(Color("AppText").opacity(0.4))
 
                     TextField("000000", text: $hexInput)
                         .font(.system(size: 15, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(hexIsValid ? .white : Color(hex: "#FF453A"))
+                        .foregroundStyle(hexIsValid ? Color("AppText") : Color(hex: "#FF453A")) // Adaptive
                         .tint(Color(hex: "#FF8C42"))
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
@@ -526,13 +502,13 @@ struct ColorSlotRow: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white.opacity(isActive ? 0.08 : 0.05))
+                .fill(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Card Background
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
                         .stroke(
                             isActive
-                                ? Color(hex: "#FF8C42").opacity(0.35)
-                                : Color.white.opacity(0.07),
+                                ? Color(hex: "#FF8C42").opacity(0.4)
+                                : Color("AppText").opacity(0.07),
                             lineWidth: 1.2
                         )
                 )
