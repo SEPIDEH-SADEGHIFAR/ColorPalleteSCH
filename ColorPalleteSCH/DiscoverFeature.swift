@@ -2,37 +2,6 @@ import SwiftUI
 import SwiftData
 
 // ═════════════════════════════════════════════════════════════
-// MARK: - MAIN TAB VIEW
-// ═════════════════════════════════════════════════════════════
-
-struct MainTabView: View {
-    @State private var selectedTab: Tab = .home
-    
-    enum Tab {
-        case home
-        case discover
-    }
-    
-    var body: some View {
-        TabView(selection: $selectedTab) {
-            HomeView()
-                .tabItem {
-                    Label("Palettes", systemImage: selectedTab == .home ? "square.grid.2x2.fill" : "square.grid.2x2")
-                }
-                .tag(Tab.home)
-            
-            DiscoverView()
-                .tabItem {
-                    Label("Discover", systemImage: selectedTab == .discover ? "sparkle.magnifyingglass" : "magnifyingglass")
-                }
-                .tag(Tab.discover)
-        }
-        .tint(Color(hex: "#1A1A1A"))
-    }
-}
-
-
-// ═════════════════════════════════════════════════════════════
 // MARK: - DISCOVER VIEW
 // ═════════════════════════════════════════════════════════════
 
@@ -57,7 +26,7 @@ struct DiscoverView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottom) {
-                Color(hex: "#F5F2EE").ignoresSafeArea()
+                Color("AppBackground").ignoresSafeArea() // Adaptive background
                 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -114,10 +83,10 @@ struct DiscoverView: View {
             Text("DISCOVER")
                 .font(.system(size: 11, weight: .bold))
                 .tracking(3)
-                .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.35))
+                .foregroundStyle(Color("AppText").opacity(0.35))
             Text("Color Explorer")
                 .font(.system(size: 38, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(hex: "#1A1A1A"))
+                .foregroundStyle(Color("AppText"))
                 .kerning(-1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -137,12 +106,12 @@ struct DiscoverView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.35))
+                        .foregroundStyle(Color("AppText").opacity(0.35))
                     
                     TextField("Hex, name, or description...", text: $searchText)
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(Color(hex: "#1A1A1A"))
-                        .tint(Color(hex: "#1A1A1A"))
+                        .foregroundStyle(Color("AppText"))
+                        .tint(Color("AppText"))
                         .submitLabel(.search)
                         .onSubmit { performSearch() }
                     
@@ -153,7 +122,7 @@ struct DiscoverView: View {
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 16))
-                                .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.25))
+                                .foregroundStyle(Color("AppText").opacity(0.25))
                         }
                     }
                 }
@@ -161,11 +130,11 @@ struct DiscoverView: View {
                 .padding(.vertical, 14)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white)
-                        .shadow(color: Color(hex: "#1A1A1A").opacity(0.06), radius: 12, y: 4)
+                        .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                        .shadow(color: Color("AppText").opacity(0.06), radius: 12, y: 4)
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(hex: "#1A1A1A").opacity(0.08), lineWidth: 1)
+                                .stroke(Color("AppText").opacity(0.08), lineWidth: 1)
                         )
                 )
                 
@@ -175,11 +144,11 @@ struct DiscoverView: View {
                 } label: {
                     Image(systemName: "eyedropper.halffull")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color("AppBackground"))
                         .frame(width: 50, height: 50)
                         .background(
                             RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(hex: "#1A1A1A"))
+                                .fill(Color("AppText"))
                         )
                 }
             }
@@ -196,16 +165,16 @@ struct DiscoverView: View {
                                     Circle()
                                         .fill(Color(hex: hex))
                                         .frame(width: 16, height: 16)
-                                        .overlay(Circle().stroke(Color(hex: "#1A1A1A").opacity(0.1), lineWidth: 1))
+                                        .overlay(Circle().stroke(Color("AppText").opacity(0.1), lineWidth: 1))
                                     Text(hex)
                                         .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                                        .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.6))
+                                        .foregroundStyle(Color("AppText").opacity(0.6))
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
                                 .background(
                                     Capsule()
-                                        .fill(Color(hex: "#1A1A1A").opacity(0.05))
+                                        .fill(Color("AppText").opacity(0.05))
                                 )
                             }
                         }
@@ -223,19 +192,19 @@ struct DiscoverView: View {
         VStack(spacing: 20) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: "#1A1A1A").opacity(0.04))
+                    .fill(Color("AppText").opacity(0.04))
                     .frame(width: 100, height: 100)
                 Image(systemName: "sparkle.magnifyingglass")
                     .font(.system(size: 40, weight: .light))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.2))
+                    .foregroundStyle(Color("AppText").opacity(0.2))
             }
             VStack(spacing: 8) {
                 Text("Explore Any Color")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.6))
+                    .foregroundStyle(Color("AppText").opacity(0.6))
                 Text("Search by hex, name, or pick from the dropper")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.35))
+                    .foregroundStyle(Color("AppText").opacity(0.35))
                     .multilineTextAlignment(.center)
             }
         }
@@ -296,7 +265,7 @@ struct DiscoverView: View {
                     .frame(height: 200)
                     .overlay(
                         RoundedRectangle(cornerRadius: 24)
-                            .stroke(Color(hex: "#1A1A1A").opacity(0.08), lineWidth: 1)
+                            .stroke(Color("AppText").opacity(0.08), lineWidth: 1)
                     )
                 
                 // Selection indicator if this exact color is selected
@@ -306,7 +275,7 @@ struct DiscoverView: View {
                             Spacer()
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 28))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Color("AppBackground"))
                                 .shadow(color: .black.opacity(0.3), radius: 4)
                                 .padding(16)
                         }
@@ -325,10 +294,10 @@ struct DiscoverView: View {
                         Text("EXACT MATCH")
                             .font(.system(size: 9, weight: .bold))
                             .tracking(1.5)
-                            .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.35))
+                            .foregroundStyle(Color("AppText").opacity(0.35))
                         Text(explored.name)
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color(hex: "#1A1A1A"))
+                            .foregroundStyle(Color("AppText"))
                     }
                     Spacer()
                     // Copy button
@@ -338,11 +307,11 @@ struct DiscoverView: View {
                     } label: {
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.5))
+                            .foregroundStyle(Color("AppText").opacity(0.5))
                             .frame(width: 36, height: 36)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color(hex: "#1A1A1A").opacity(0.06))
+                                    .fill(Color("AppText").opacity(0.06))
                             )
                     }
                 }
@@ -350,22 +319,22 @@ struct DiscoverView: View {
                 HStack(spacing: 12) {
                     Label(explored.hex.uppercased(), systemImage: "number")
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.45))
+                        .foregroundStyle(Color("AppText").opacity(0.45))
                     
                     Label(explored.rgbString, systemImage: "circle.grid.3x3.fill")
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.45))
+                        .foregroundStyle(Color("AppText").opacity(0.45))
                 }
             }
             .padding(18)
-            .background(Color.white)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
             .clipShape(UnevenRoundedRectangle(
                 bottomLeadingRadius: 24,
                 bottomTrailingRadius: 24
             ))
         }
         .clipShape(RoundedRectangle(cornerRadius: 24))
-        .shadow(color: Color(hex: "#1A1A1A").opacity(0.08), radius: 20, y: 8)
+        .shadow(color: Color("AppText").opacity(0.08), radius: 20, y: 8)
     }
     
     // MARK: - Color Range Section
@@ -376,14 +345,14 @@ struct DiscoverView: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.35))
+                    .foregroundStyle(Color("AppText").opacity(0.35))
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 16, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color(hex: "#1A1A1A"))
+                        .foregroundStyle(Color("AppText"))
                     Text(subtitle)
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.4))
+                        .foregroundStyle(Color("AppText").opacity(0.4))
                 }
                 Spacer()
             }
@@ -417,12 +386,12 @@ struct DiscoverView: View {
                 Text("Create Palette from Selected (\(selectedSwatches.count))")
                     .font(.system(size: 16, weight: .bold, design: .rounded))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Color("AppBackground"))
             .frame(maxWidth: .infinity)
             .frame(height: 58)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(Color(hex: "#1A1A1A"))
+                    .fill(Color("AppText"))
                     .shadow(color: .black.opacity(0.2), radius: 16, y: 6)
             )
         }
@@ -450,16 +419,16 @@ struct DiscoverView: View {
                         VStack(spacing: 6) {
                             Text("Palette Created!")
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                                .foregroundStyle(Color(hex: "#1A1A1A"))
+                                .foregroundStyle(Color("AppText"))
                             Text("Saved to your collection")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.5))
+                                .foregroundStyle(Color("AppText").opacity(0.5))
                         }
                     }
                     .padding(32)
                     .background(
                         RoundedRectangle(cornerRadius: 24)
-                            .fill(Color.white)
+                            .fill(Color(uiColor: .secondarySystemGroupedBackground))
                             .shadow(color: .black.opacity(0.15), radius: 30, y: 10)
                     )
                     .padding(.horizontal, 50)
@@ -569,7 +538,7 @@ struct SwatchCard: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
                             .stroke(
-                                isSelected ? Color.white : Color(hex: "#1A1A1A").opacity(0.08),
+                                isSelected ? Color("AppBackground") : Color("AppText").opacity(0.08),
                                 lineWidth: isSelected ? 3 : 1
                             )
                     )
@@ -580,7 +549,7 @@ struct SwatchCard: View {
                             Spacer()
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 22))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(Color("AppBackground"))
                                 .shadow(color: .black.opacity(0.3), radius: 3)
                                 .padding(8)
                         }
@@ -593,20 +562,20 @@ struct SwatchCard: View {
             VStack(spacing: 3) {
                 Text(swatch.hex.uppercased())
                     .font(.system(size: 11, weight: .bold, design: .monospaced))
-                    .foregroundStyle(Color(hex: "#1A1A1A"))
+                    .foregroundStyle(Color("AppText"))
                     .lineLimit(1)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 10)
             .frame(width: 110)
-            .background(Color.white)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
             .clipShape(UnevenRoundedRectangle(
                 bottomLeadingRadius: 14,
                 bottomTrailingRadius: 14
             ))
         }
         .clipShape(RoundedRectangle(cornerRadius: 14))
-        .shadow(color: Color(hex: "#1A1A1A").opacity(isSelected ? 0.15 : 0.06), radius: isSelected ? 12 : 8, y: 4)
+        .shadow(color: Color("AppText").opacity(isSelected ? 0.15 : 0.06), radius: isSelected ? 12 : 8, y: 4)
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.spring(response: 0.3), value: isSelected)
         .onTapGesture(perform: onTap)
@@ -626,7 +595,7 @@ struct ColorPickerSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "#F5F2EE").ignoresSafeArea()
+                Color("AppBackground").ignoresSafeArea()
                 VStack(spacing: 24) {
                     // Big preview
                     RoundedRectangle(cornerRadius: 24)
@@ -634,7 +603,7 @@ struct ColorPickerSheet: View {
                         .frame(height: 200)
                         .overlay(
                             RoundedRectangle(cornerRadius: 24)
-                                .stroke(Color(hex: "#1A1A1A").opacity(0.1), lineWidth: 1)
+                                .stroke(Color("AppText").opacity(0.1), lineWidth: 1)
                         )
                         .padding(.horizontal, 22)
                     
@@ -652,12 +621,12 @@ struct ColorPickerSheet: View {
                     } label: {
                         Text("Explore This Color")
                             .font(.system(size: 17, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color("AppBackground"))
                             .frame(maxWidth: .infinity)
                             .frame(height: 56)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color(hex: "#1A1A1A"))
+                                    .fill(Color("AppText"))
                             )
                     }
                     .padding(.horizontal, 22)
@@ -670,10 +639,10 @@ struct ColorPickerSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundStyle(Color(hex: "#1A1A1A"))
+                        .foregroundStyle(Color("AppText"))
                 }
             }
-            .toolbarBackground(Color(hex: "#F5F2EE"), for: .navigationBar)
+            .toolbarBackground(Color("AppBackground"), for: .navigationBar)
         }
         .presentationDetents([.medium])
     }
@@ -681,7 +650,7 @@ struct ColorPickerSheet: View {
 
 
 // ═════════════════════════════════════════════════════════════
-// MARK: - COLOR MATH ENGINE
+// MARK: - COLOR MATH ENGINE (Unchanged)
 // ═════════════════════════════════════════════════════════════
 
 struct ColorSwatch: Identifiable {
@@ -702,7 +671,6 @@ struct ExploredColor {
 
 enum ColorMath {
     
-    /// Main entry point: explore a color and generate all variations
     static func explore(color: Color) -> ExploredColor {
         let hex = color.toHex() ?? "#000000"
         let rgb = hexToRGB(hex)
@@ -720,7 +688,7 @@ enum ColorMath {
         )
     }
     
-    // MARK: - Tints (Lighter — Mix with White)
+    // ... [The rest of the ColorMath engine remains completely unchanged] ...
     
     static func generateTints(from rgb: (r: Int, g: Int, b: Int)) -> [ColorSwatch] {
         let steps = 6
@@ -733,8 +701,6 @@ enum ColorMath {
         }
     }
     
-    // MARK: - Shades (Darker — Mix with Black)
-    
     static func generateShades(from rgb: (r: Int, g: Int, b: Int)) -> [ColorSwatch] {
         let steps = 6
         return (1...steps).map { step in
@@ -745,8 +711,6 @@ enum ColorMath {
             return ColorSwatch(hex: rgbToHex(r: r, g: g, b: b))
         }
     }
-    
-    // MARK: - Analogous (±30° on Hue Wheel)
     
     static func generateAnalogous(from hsb: (h: Double, s: Double, b: Double)) -> [ColorSwatch] {
         let offsets: [Double] = [-60, -45, -30, -15, 15, 30, 45, 60]
@@ -759,10 +723,7 @@ enum ColorMath {
         }
     }
     
-    // MARK: - Complementary (180° Opposite + Variations)
-    
     static func generateComplementary(from hsb: (h: Double, s: Double, b: Double)) -> [ColorSwatch] {
-        // Pure complement + slight variations
         let offsets: [Double] = [165, 172.5, 180, 187.5, 195]
         return offsets.map { offset in
             var newH = hsb.h + offset
@@ -771,8 +732,6 @@ enum ColorMath {
             return ColorSwatch(hex: rgbToHex(r: rgb.r, g: rgb.g, b: rgb.b))
         }
     }
-    
-    // MARK: - Color Space Conversions
     
     static func hexToRGB(_ hex: String) -> (r: Int, g: Int, b: Int) {
         let cleaned = hex.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -841,24 +800,19 @@ enum ColorMath {
         )
     }
     
-    // MARK: - Color Naming (Simple Example)
-    
     static func nameForHex(_ hex: String) -> String {
         let rgb = hexToRGB(hex)
         let hsb = rgbToHSB(rgb)
         
-        // Brightness check
         if hsb.b < 0.15 { return "Deep Black" }
         if hsb.b > 0.92 && hsb.s < 0.08 { return "Pure White" }
         
-        // Low saturation = gray
         if hsb.s < 0.12 {
             if hsb.b < 0.35 { return "Charcoal" }
             if hsb.b < 0.65 { return "Gray" }
             return "Silver"
         }
         
-        // Hue-based naming
         let prefix: String
         switch hsb.h {
         case 0..<15, 345..<360:   prefix = "Red"

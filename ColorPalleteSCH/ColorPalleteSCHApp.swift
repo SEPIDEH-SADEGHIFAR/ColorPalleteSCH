@@ -12,7 +12,7 @@ import SwiftData
 struct ColorPalleteSCHApp: App {
     var body: some Scene {
         WindowGroup {
-            // Point this to HomeView, NOT ContentView
+           
             MainTabView()
         }
         .modelContainer(for: SavedPalette.self)

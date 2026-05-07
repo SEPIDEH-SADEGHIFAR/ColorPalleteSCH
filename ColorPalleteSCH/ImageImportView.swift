@@ -31,7 +31,7 @@ struct ImageColorExtractorView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "#0D0D0D").ignoresSafeArea()
+                Color("AppBackground").ignoresSafeArea() // Adaptive Background
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -58,15 +58,14 @@ struct ImageColorExtractorView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.55))
+                            .foregroundStyle(Color("AppText").opacity(0.55))
                             .frame(width: 30, height: 30)
-                            .background(Color.white.opacity(0.09))
+                            .background(Color("AppText").opacity(0.09))
                             .clipShape(Circle())
                     }
                 }
             }
-            .toolbarBackground(Color(hex: "#0D0D0D"), for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(Color("AppBackground"), for: .navigationBar)
             .sheet(isPresented: $showCamera) {
                 CameraPickerView { image in
                     selectedImage = image
@@ -105,7 +104,7 @@ struct ImageColorExtractorView: View {
 
                 Text("Extract\nfrom Image")
                     .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("AppText")) // Adaptive
                     .lineSpacing(0)
             }
             Spacer()
@@ -147,7 +146,7 @@ struct ImageColorExtractorView: View {
             // Image preview / drop zone
             ZStack {
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white.opacity(0.05))
+                    .fill(Color("AppText").opacity(0.05)) // Adaptive
                     .overlay(
                         RoundedRectangle(cornerRadius: 24)
                             .strokeBorder(
@@ -168,7 +167,7 @@ struct ImageColorExtractorView: View {
                         .frame(height: 260)
                         .clipShape(RoundedRectangle(cornerRadius: 24))
                         .overlay(
-                            // Re-pick overlay
+                            // Re-pick overlay (Kept white as it's an overlay on a photo)
                             VStack {
                                 HStack {
                                     Spacer()
@@ -200,7 +199,7 @@ struct ImageColorExtractorView: View {
 
                         Text("Choose a photo to extract colors from")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(Color.white.opacity(0.35))
+                            .foregroundStyle(Color("AppText").opacity(0.35))
                             .multilineTextAlignment(.center)
                     }
                 }
@@ -238,15 +237,15 @@ struct ImageColorExtractorView: View {
                         Text("Camera")
                             .font(.system(size: 14, weight: .semibold, design: .rounded))
                     }
-                    .foregroundStyle(Color.white.opacity(0.6))
+                    .foregroundStyle(Color("AppText").opacity(0.6))
                     .frame(maxWidth: .infinity)
                     .frame(height: 50)
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.white.opacity(0.06))
+                            .fill(Color(uiColor: .secondarySystemGroupedBackground))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1.2)
+                                    .stroke(Color("AppText").opacity(0.1), lineWidth: 1.2)
                             )
                     )
                 }
@@ -258,7 +257,7 @@ struct ImageColorExtractorView: View {
                     Text("EXTRACT")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(2)
-                        .foregroundStyle(Color.white.opacity(0.3))
+                        .foregroundStyle(Color("AppText").opacity(0.3))
                     Spacer()
                     HStack(spacing: 16) {
                         Button {
@@ -269,16 +268,16 @@ struct ImageColorExtractorView: View {
                         } label: {
                             Image(systemName: "minus")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(colorCount > 3 ? Color(hex: "#2DD4BF") : Color.white.opacity(0.2))
+                                .foregroundStyle(colorCount > 3 ? Color(hex: "#2DD4BF") : Color("AppText").opacity(0.2))
                                 .frame(width: 30, height: 30)
-                                .background(Color.white.opacity(0.07))
+                                .background(Color("AppText").opacity(0.07))
                                 .clipShape(Circle())
                         }
                         .disabled(colorCount <= 3)
 
                         Text("\(colorCount) colors")
                             .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color("AppText"))
                             .frame(minWidth: 70, alignment: .center)
 
                         Button {
@@ -289,9 +288,9 @@ struct ImageColorExtractorView: View {
                         } label: {
                             Image(systemName: "plus")
                                 .font(.system(size: 13, weight: .bold))
-                                .foregroundStyle(colorCount < 8 ? Color(hex: "#2DD4BF") : Color.white.opacity(0.2))
+                                .foregroundStyle(colorCount < 8 ? Color(hex: "#2DD4BF") : Color("AppText").opacity(0.2))
                                 .frame(width: 30, height: 30)
-                                .background(Color.white.opacity(0.07))
+                                .background(Color("AppText").opacity(0.07))
                                 .clipShape(Circle())
                         }
                         .disabled(colorCount >= 8)
@@ -311,7 +310,7 @@ struct ImageColorExtractorView: View {
         VStack(spacing: 20) {
             ZStack {
                 Circle()
-                    .stroke(Color.white.opacity(0.07), lineWidth: 3)
+                    .stroke(Color("AppText").opacity(0.07), lineWidth: 3)
                     .frame(width: 64, height: 64)
 
                 Circle()
@@ -333,7 +332,7 @@ struct ImageColorExtractorView: View {
 
             Text("Sampling pixels…")
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.5))
+                .foregroundStyle(Color("AppText").opacity(0.5))
         }
     }
 
@@ -348,10 +347,10 @@ struct ImageColorExtractorView: View {
                     Text("EXTRACTED")
                         .font(.system(size: 10, weight: .bold))
                         .tracking(2.5)
-                        .foregroundStyle(Color.white.opacity(0.28))
+                        .foregroundStyle(Color("AppText").opacity(0.28))
                     Text("Your Colors")
                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color("AppText"))
                 }
                 Spacer()
 
@@ -361,9 +360,9 @@ struct ImageColorExtractorView: View {
                 } label: {
                     Image(systemName: "arrow.counterclockwise")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .foregroundStyle(Color("AppText").opacity(0.5))
                         .frame(width: 36, height: 36)
-                        .background(Color.white.opacity(0.08))
+                        .background(Color("AppText").opacity(0.08))
                         .clipShape(Circle())
                 }
             }
@@ -391,7 +390,7 @@ struct ImageColorExtractorView: View {
                 Text("PALETTE NAME")
                     .font(.system(size: 9, weight: .bold))
                     .tracking(2.5)
-                    .foregroundStyle(Color.white.opacity(0.28))
+                    .foregroundStyle(Color("AppText").opacity(0.28))
 
                 HStack(spacing: 12) {
                     Image(systemName: "pencil")
@@ -400,7 +399,7 @@ struct ImageColorExtractorView: View {
 
                     TextField("e.g. Golden Hour", text: $paletteName)
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color("AppText"))
                         .tint(Color(hex: "#2DD4BF"))
                         .focused($nameFocused)
                         .submitLabel(.done)
@@ -409,7 +408,7 @@ struct ImageColorExtractorView: View {
                         Button { paletteName = "" } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 15))
-                                .foregroundStyle(Color.white.opacity(0.3))
+                                .foregroundStyle(Color("AppText").opacity(0.3))
                         }
                     }
                 }
@@ -417,13 +416,13 @@ struct ImageColorExtractorView: View {
                 .padding(.vertical, 14)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white.opacity(0.06))
+                        .fill(Color(uiColor: .secondarySystemGroupedBackground))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(
                                     nameFocused
                                         ? Color(hex: "#2DD4BF").opacity(0.5)
-                                        : Color.white.opacity(0.08),
+                                        : Color("AppText").opacity(0.08),
                                     lineWidth: 1.2
                                 )
                         )
@@ -450,7 +449,7 @@ struct ImageColorExtractorView: View {
             .foregroundStyle(
                 savedSuccessfully
                     ? Color(hex: "#34C759")
-                    : (canSave ? Color(hex: "#0D0D0D") : Color.white.opacity(0.25))
+                    : (canSave ? Color("AppBackground") : Color("AppText").opacity(0.25))
             )
             .frame(maxWidth: .infinity)
             .frame(height: 58)
@@ -464,13 +463,13 @@ struct ImageColorExtractorView: View {
                                     .stroke(Color(hex: "#34C759").opacity(0.4), lineWidth: 1.5)
                             )
                     } else if canSave {
-                        RoundedRectangle(cornerRadius: 18).fill(.white)
+                        RoundedRectangle(cornerRadius: 18).fill(Color("AppText"))
                     } else {
                         RoundedRectangle(cornerRadius: 18)
-                            .fill(Color.white.opacity(0.07))
+                            .fill(Color("AppText").opacity(0.07))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 18)
-                                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                                    .stroke(Color("AppText").opacity(0.1), lineWidth: 1)
                             )
                     }
                 }
@@ -538,19 +537,19 @@ struct ExtractedColorCard: View {
                 .frame(width: 52, height: 52)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(Color("AppText").opacity(0.1), lineWidth: 1)
                 )
 
             // Editable name
             VStack(alignment: .leading, spacing: 3) {
                 TextField("Color name", text: $color.name)
                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("AppText"))
                     .tint(Color(hex: "#2DD4BF"))
 
                 Text(color.hex.uppercased())
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.4))
+                    .foregroundStyle(Color("AppText").opacity(0.4))
             }
 
             Spacer()
@@ -566,23 +565,23 @@ struct ExtractedColorCard: View {
             } label: {
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(copied ? Color(hex: "#34C759") : Color.white.opacity(0.45))
+                    .foregroundStyle(copied ? Color(hex: "#34C759") : Color("AppText").opacity(0.45))
                     .frame(width: 36, height: 36)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(copied
                                   ? Color(hex: "#34C759").opacity(0.14)
-                                  : Color.white.opacity(0.08))
+                                  : Color("AppText").opacity(0.08))
                     )
             }
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white.opacity(0.05))
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
-                        .stroke(Color.white.opacity(0.07), lineWidth: 1)
+                        .stroke(Color("AppText").opacity(0.07), lineWidth: 1)
                 )
         )
     }

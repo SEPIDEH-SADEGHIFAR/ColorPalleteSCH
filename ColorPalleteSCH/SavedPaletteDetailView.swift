@@ -10,12 +10,14 @@ struct SavedPaletteDetailView: View {
 
     @State private var isAddingColor = false
     @State private var colorToExport: SavedColor?
+    @State private var colorToEdit: SavedColor?
     @State private var showPaletteExport = false
+    @State private var copiedHex: String? = nil
     @State private var animateIn = false
 
     var body: some View {
         ZStack {
-            Color(hex: "#F5F2EE").ignoresSafeArea()
+            Color("AppBackground").ignoresSafeArea() // Adaptive Background
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
@@ -30,10 +32,10 @@ struct SavedPaletteDetailView: View {
                     .opacity(animateIn ? 1 : 0)
                     .animation(.easeOut(duration: 0.5), value: animateIn)
                     
-                    // 2. Content Area
+                    // 2. Content Area (Title + Colors)
                     VStack(alignment: .leading, spacing: 24) {
                         
-                        // Info Header & Export Buttons
+                        // Info Header & Export Button
                         HStack(alignment: .top) {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("\(palette.timestamp.relativeFormatted().uppercased())")
@@ -42,7 +44,7 @@ struct SavedPaletteDetailView: View {
                                 
                                 Text(palette.title)
                                     .font(.system(size: 32, weight: .heavy, design: .rounded))
-                                    .foregroundStyle(Color(hex: "#1A1A1A"))
+                                    .foregroundStyle(Color("AppText")) // Adaptive Text
                                     .kerning(-0.5)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.8)
@@ -54,18 +56,18 @@ struct SavedPaletteDetailView: View {
                             
                             Spacer()
                             
-                            // Full Palette Export Button (Moved to Title UI)
+                            // Full Palette Export Button
                             Button(action: { showPaletteExport = true }) {
                                 Image(systemName: "square.and.arrow.up")
                                     .font(.headline)
-                                    .foregroundColor(Color(hex: "#1A1A1A"))
+                                    .foregroundColor(Color("AppText")) // Adaptive
                                     .frame(width: 44, height: 44)
-                                    .background(Color.white)
+                                    .background(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Card
                                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                                    .shadow(color: Color(hex: "#1A1A1A").opacity(0.05), radius: 5, y: 2)
+                                    .shadow(color: Color("AppText").opacity(0.05), radius: 5, y: 2)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color(hex: "#1A1A1A").opacity(0.06), lineWidth: 1)
+                                            .stroke(Color("AppText").opacity(0.06), lineWidth: 1)
                                     )
                             }
                         }
@@ -76,14 +78,16 @@ struct SavedPaletteDetailView: View {
                         Divider()
                             .opacity(animateIn ? 1 : 0)
                         
-                        // 3. Clean Color List
+                        // 3. Feature-Rich Color List
                         VStack(spacing: 12) {
                             ForEach(Array(palette.colors.enumerated()), id: \.element.id) { index, color in
                                 DetailColorRow(
                                     color: color,
+                                    copiedHex: $copiedHex,
+                                    onEdit: { colorToEdit = color },
                                     onExport: { colorToExport = color },
                                     onDelete: {
-                                        withAnimation(.spring(response: 0.4)) { modelContext.delete(color) }
+                                        deleteColor(color) // Uses the instant-delete fix
                                     }
                                 )
                                 .opacity(animateIn ? 1 : 0)
@@ -107,7 +111,7 @@ struct SavedPaletteDetailView: View {
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                                 .foregroundColor(.gray)
                                 .frame(maxWidth: .infinity, minHeight: 60)
-                                .background(Color.white.opacity(0.5))
+                                .background(Color("AppText").opacity(0.05)) // Adaptive
                                 .clipShape(RoundedRectangle(cornerRadius: 16))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 16)
@@ -125,7 +129,7 @@ struct SavedPaletteDetailView: View {
                     Spacer(minLength: 60)
                 }
             }
-            .ignoresSafeArea(edges: .top) // Pushes colors into the notch/status bar area
+            .ignoresSafeArea(edges: .top) // Pushes colors smoothly into the notch
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -138,19 +142,23 @@ struct SavedPaletteDetailView: View {
                         Text("Back")
                             .font(.system(size: 15, weight: .semibold))
                     }
-                    .foregroundStyle(Color(hex: "#1A1A1A"))
+                    .foregroundStyle(Color("AppText")) // Adaptive Text
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(.ultraThinMaterial)
+                   // .background(.ultraThinMaterial)
                     .clipShape(Capsule())
                 }
             }
         }
+        .toolbarBackground(Color("AppBackground"), for: .navigationBar) // Adaptive Toolbar
         .onAppear {
             withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) { animateIn = true }
         }
         .sheet(isPresented: $isAddingColor) {
             AddColorView(palette: palette)
+        }
+        .sheet(item: $colorToEdit) { color in
+            EditColorSheet(color: color)
         }
         .sheet(item: $colorToExport) { color in
             ExportColorPreviewView(color: color)
@@ -160,57 +168,124 @@ struct SavedPaletteDetailView: View {
         }
     }
 
+    // Instant-delete fix to prevent lag
     private func deleteColor(_ color: SavedColor) {
-        modelContext.delete(color)
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            if let index = palette.colors.firstIndex(of: color) {
+                palette.colors.remove(at: index)
+            }
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            modelContext.delete(color)
+            try? modelContext.save()
+        }
     }
 }
 
-// MARK: - Detail Color Row
+// MARK: - Feature-Rich Detail Color Row
 
 struct DetailColorRow: View {
     let color: SavedColor
+    @Binding var copiedHex: String?
+    let onEdit: () -> Void
     let onExport: () -> Void
     let onDelete: () -> Void
+    
+    private var isCopied: Bool { copiedHex == color.hex }
 
     var body: some View {
         HStack(spacing: 14) {
+            // Swatch
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color(hex: color.hex))
                 .frame(width: 54, height: 54)
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color(hex: "#1A1A1A").opacity(0.08), lineWidth: 1)
+                        .stroke(Color("AppText").opacity(0.08), lineWidth: 1)
                 )
-            
+
+            // Name + hex
             VStack(alignment: .leading, spacing: 4) {
                 Text(color.name)
                     .font(.system(size: 15, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color(hex: "#1A1A1A"))
+                    .foregroundStyle(Color("AppText")) // Adaptive
                 Text(color.hex.uppercased())
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.38))
+                    .foregroundStyle(Color("AppText").opacity(0.38)) // Adaptive
             }
-            
+
             Spacer()
-            
-            // Share/Export Button
+
+            // Copy Button
+            Button {
+                UIPasteboard.general.string = color.hex
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                withAnimation(.spring(response: 0.3)) { copiedHex = color.hex }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                    withAnimation { if copiedHex == color.hex { copiedHex = nil } }
+                }
+            } label: {
+                Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(
+                        isCopied ? Color(hex: "#34C759") : Color("AppText").opacity(0.38)
+                    )
+                    .frame(width: 36, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(isCopied
+                                  ? Color(hex: "#34C759").opacity(0.1)
+                                  : Color("AppText").opacity(0.07))
+                    )
+            }
+
+            // Edit Button
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Color("AppText").opacity(0.38))
+                    .frame(width: 36, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color("AppText").opacity(0.07))
+                    )
+            }
+
+            // Export Button
             Button(action: onExport) {
                 Image(systemName: "square.and.arrow.up")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.38))
+                    .foregroundStyle(Color("AppText").opacity(0.38))
                     .frame(width: 36, height: 36)
-                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(hex: "#1A1A1A").opacity(0.07)))
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color("AppText").opacity(0.07))
+                    )
             }
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(Color.white)
-                .shadow(color: Color(hex: "#1A1A1A").opacity(0.05), radius: 10, y: 3)
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color(hex: "#1A1A1A").opacity(0.06), lineWidth: 1))
+                .fill(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Card
+                .shadow(color: Color("AppText").opacity(0.05), radius: 10, y: 3)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color("AppText").opacity(0.06), lineWidth: 1)
+                )
         )
+        // Trailing Swipe to Delete
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive, action: onDelete) { Label("Delete", systemImage: "trash") }
+            Button(role: .destructive, action: onDelete) {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        // Leading Swipe to Edit
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button(action: onEdit) {
+                Label("Edit", systemImage: "pencil")
+            }
+            .tint(Color(hex: "#6C63FF")) // Accent purple
         }
     }
 }

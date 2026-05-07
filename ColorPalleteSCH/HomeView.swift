@@ -36,6 +36,7 @@ struct HomeView: View {
                     HStack {
                         Text("Palettes")
                             .font(.system(size: 36, weight: .heavy, design: .default))
+                            .foregroundStyle(Color("AppText"))
                         
                         Spacer()
                         
@@ -90,6 +91,7 @@ struct HomeView: View {
                         // 3. ALL PALETTES GRID
                         VStack(alignment: .leading, spacing: 12) {
                             Text("ALL PALETTES")
+                                .foregroundStyle(Color("AppText"))
                                 .font(.caption.bold())
                                 .foregroundColor(.gray)
                                 .padding(.horizontal)
@@ -121,7 +123,7 @@ struct HomeView: View {
                                             .foregroundColor(.gray)
                                     }
                                     .frame(maxWidth: .infinity, minHeight: 180)
-                                    .background(Color.gray.opacity(0.05))
+                                    .background(Color("AppText").opacity(0.05)) // Adaptive
                                     .clipShape(RoundedRectangle(cornerRadius: 24))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 24)
@@ -135,7 +137,7 @@ struct HomeView: View {
                 }
                 .padding(.bottom, 32)
             }
-            .background(Color(uiColor: .systemGroupedBackground).ignoresSafeArea()) // Off-white background makes the white cards pop
+            .background(Color("AppBackground").ignoresSafeArea()) // Adaptive background
             .navigationBarHidden(true)
             .sheet(item: $activeSheet) { item in
                 switch item {
@@ -174,14 +176,14 @@ struct RecentPaletteCard: View {
                 Text(palette.title)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.black)
+                    .foregroundStyle(Color("AppText")) // Adaptive
                 
                 // Hex Code Pills (shows up to 3 to fit nicely)
                 HStack(spacing: 6) {
                     ForEach(palette.colors.prefix(3)) { color in
                         Text(color.hex.uppercased())
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundColor(.black.opacity(0.7))
+                            .foregroundStyle(Color("AppText").opacity(0.7)) // Adaptive
                             .padding(.horizontal, 6)
                             .padding(.vertical, 4)
                             .background(Color.gray.opacity(0.15))
@@ -199,9 +201,9 @@ struct RecentPaletteCard: View {
             Spacer()
         }
         .frame(height: 120)
-        .background(Color.white)
+        .background(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Card Background
         .clipShape(RoundedRectangle(cornerRadius: 24))
-        .shadow(color: Color.black.opacity(0.05), radius: 10, y: 4)
+        .shadow(color: Color("AppText").opacity(0.05), radius: 10, y: 4) // Adaptive Shadow
     }
 }
 
@@ -224,7 +226,7 @@ struct ModernPaletteCard: View {
                 Text(palette.title)
                     .font(.headline)
                     .fontWeight(.bold)
-                    .foregroundColor(.black)
+                    .foregroundStyle(Color("AppText")) // Adaptive
                     .lineLimit(1)
                 
                 HStack(spacing: 4) {
@@ -238,10 +240,10 @@ struct ModernPaletteCard: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.white)
+            .background(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Card Background
         }
         .clipShape(RoundedRectangle(cornerRadius: 24))
-        .shadow(color: Color.black.opacity(0.05), radius: 8, y: 4)
+        .shadow(color: Color("AppText").opacity(0.05), radius: 8, y: 4) // Adaptive Shadow
     }
 }
 
@@ -274,7 +276,7 @@ struct AddPaletteMenuSheet: View {
             Button(action: { dismiss() }) {
                 Text("Cancel")
                     .font(.headline)
-                    .foregroundColor(.black)
+                    .foregroundStyle(Color("AppText")) // Adaptive
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.gray.opacity(0.1))
@@ -304,7 +306,7 @@ struct MenuRow: View {
                     .overlay(Image(systemName: icon).foregroundColor(.white))
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title).font(.headline).foregroundColor(.black)
+                    Text(title).font(.headline).foregroundStyle(Color("AppText")) // Adaptive
                     Text(subtitle).font(.caption).foregroundColor(.gray)
                 }
                 Spacer()

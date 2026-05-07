@@ -78,7 +78,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "#0D0D0D").ignoresSafeArea()
+                Color("AppBackground").ignoresSafeArea() // Adaptive Background
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
@@ -103,15 +103,14 @@ struct ContentView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.6))
+                            .foregroundStyle(Color("AppText").opacity(0.6))
                             .frame(width: 32, height: 32)
-                            .background(Color.white.opacity(0.1))
+                            .background(Color("AppText").opacity(0.1))
                             .clipShape(Circle())
                     }
                 }
             }
-            .toolbarBackground(Color(hex: "#0D0D0D"), for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(Color("AppBackground"), for: .navigationBar)
         }
     }
 
@@ -126,7 +125,7 @@ struct ContentView: View {
                     .foregroundStyle(Color(hex: "#6C63FF"))
                 Text("Generate\nPalette")
                     .font(.system(size: 38, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("AppText")) // Adaptive Text
             }
             Spacer()
             // Pulsing orb — reacts to selected color
@@ -180,11 +179,12 @@ struct ContentView: View {
                 VStack(spacing: 6) {
                     Text(selectedColor.toHex() ?? "#000000")
                         .font(.system(size: 22, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.white) // Always white over solid color
                         .shadow(color: .black.opacity(0.3), radius: 4)
                     Text("Base Color")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.6))
+                        .foregroundStyle(.white.opacity(0.8)) // Always white over solid color
+                        .shadow(color: .black.opacity(0.3), radius: 4)
                 }
             }
 
@@ -196,7 +196,7 @@ struct ContentView: View {
                     .frame(width: 44, height: 44)
                 Text("Tap the circle to pick any color")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.4))
+                    .foregroundStyle(Color("AppText").opacity(0.5)) // Adaptive Text
                 Spacer()
             }
             .padding(.horizontal, 4)
@@ -206,7 +206,7 @@ struct ContentView: View {
                 Text("QUICK PRESETS")
                     .font(.system(size: 10, weight: .semibold))
                     .tracking(2)
-                    .foregroundStyle(Color.white.opacity(0.3))
+                    .foregroundStyle(Color("AppText").opacity(0.4)) // Adaptive Text
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
@@ -228,10 +228,10 @@ struct ContentView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 28)
-                .fill(Color.white.opacity(0.05))
+                .fill(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Background
                 .overlay(
                     RoundedRectangle(cornerRadius: 28)
-                        .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                        .stroke(Color("AppText").opacity(0.08), lineWidth: 1)
                 )
         )
     }
@@ -264,14 +264,14 @@ struct ContentView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(.white) // Always white over purple gradient
             .frame(maxWidth: .infinity)
             .frame(height: 58)
             .background(
                 Group {
                     if isGenerating {
                         RoundedRectangle(cornerRadius: 18)
-                            .fill(Color.white.opacity(0.1))
+                            .fill(Color("AppText").opacity(0.1)) // Adaptive
                     } else {
                         RoundedRectangle(cornerRadius: 18)
                             .fill(LinearGradient(
@@ -283,7 +283,7 @@ struct ContentView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 18)
-                    .stroke(Color.white.opacity(isGenerating ? 0.15 : 0), lineWidth: 1)
+                    .stroke(Color("AppText").opacity(isGenerating ? 0.15 : 0), lineWidth: 1)
             )
         }
         .disabled(isGenerating)
@@ -302,10 +302,10 @@ struct ContentView: View {
                     Text("VARIATIONS")
                         .font(.system(size: 10, weight: .semibold))
                         .tracking(2.5)
-                        .foregroundStyle(Color.white.opacity(0.3))
+                        .foregroundStyle(Color("AppText").opacity(0.4))
                     Text(currentPalette?.title ?? "")
                         .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color("AppText")) // Adaptive Text
                         .animation(.easeInOut(duration: 0.2), value: activeVariation)
                 }
                 Spacer()
@@ -313,9 +313,9 @@ struct ContentView: View {
                 Button(action: generateAllVariations) {
                     Image(systemName: "arrow.counterclockwise")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.5))
+                        .foregroundStyle(Color("AppText").opacity(0.5))
                         .frame(width: 36, height: 36)
-                        .background(Color.white.opacity(0.08))
+                        .background(Color("AppText").opacity(0.08))
                         .clipShape(Circle())
                 }
                 .disabled(isGenerating)
@@ -378,7 +378,7 @@ struct ContentView: View {
                 HStack(spacing: 6) {
                     ForEach(0..<variations.count, id: \.self) { i in
                         Capsule()
-                            .fill(i == activeVariation ? Color.white : Color.white.opacity(0.22))
+                            .fill(i == activeVariation ? Color("AppText") : Color("AppText").opacity(0.22))
                             .frame(width: i == activeVariation ? 22 : 6, height: 6)
                             .animation(.spring(response: 0.32), value: activeVariation)
                     }
@@ -387,7 +387,7 @@ struct ContentView: View {
                 if variations.count > 1 {
                     Text("Swipe for variations")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.26))
+                        .foregroundStyle(Color("AppText").opacity(0.4))
                 }
             }
         }
@@ -419,7 +419,7 @@ struct ContentView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 14)
                 .stroke(
-                    isActive ? Color.white.opacity(0.22) : Color.white.opacity(0.06),
+                    isActive ? Color("AppText").opacity(0.22) : Color("AppText").opacity(0.06),
                     lineWidth: 1.5
                 )
         )
@@ -441,7 +441,7 @@ struct ContentView: View {
                 .foregroundStyle(Color(hex: "#6C63FF"))
             Text("Tap \(Image(systemName: "lock.open")) on any color to lock it before regenerating")
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.42))
+                .foregroundStyle(Color("AppText").opacity(0.5)) // Adaptive Text
             Spacer()
         }
         .padding(.horizontal, 14)
@@ -489,12 +489,12 @@ struct ContentView: View {
                 Text(savedSuccessfully ? "Saved!" : "Save Variation \(activeVariation + 1)")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
             }
-            .foregroundStyle(savedSuccessfully ? Color(hex: "#34C759") : .black)
+            .foregroundStyle(savedSuccessfully ? Color(hex: "#34C759") : Color("AppBackground"))
             .frame(maxWidth: .infinity)
             .frame(height: 58)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(savedSuccessfully ? Color(hex: "#34C759").opacity(0.15) : .white)
+                    .fill(savedSuccessfully ? Color(hex: "#34C759").opacity(0.15) : Color("AppText"))
                     .overlay(
                         RoundedRectangle(cornerRadius: 18)
                             .stroke(
@@ -518,12 +518,9 @@ struct ContentView: View {
         pulseRing = true
         savedSuccessfully = false
 
-        // Snapshot locked colors RIGHT NOW before clearing variations.
-        // lockedSlots already holds the exact snapshot — no extra work needed.
-        let snapshot = lockedSlots   // [Int: GeneratedColor] — fully captured
+        let snapshot = lockedSlots
 
         Task {
-            // Fire all 3 generations in parallel
             async let r0 = generateOne(session: sessions[0], harmonyHint: "complementary", locked: snapshot)
             async let r1 = generateOne(session: sessions[1], harmonyHint: "triadic",        locked: snapshot)
             async let r2 = generateOne(session: sessions[2], harmonyHint: "analogous with a vibrant accent", locked: snapshot)
@@ -542,8 +539,6 @@ struct ContentView: View {
         }
     }
 
-    /// Generates one palette, then OVERWRITES locked slots with the exact snapshot.
-    /// The AI output for locked slots is discarded — this is the guarantee.
     private func generateOne(
         session: LanguageModelSession,
         harmonyHint: String,
@@ -560,14 +555,11 @@ struct ContentView: View {
             let response = try await session.respond(to: prompt, generating: ColorPalette.self)
             var palette = response.content
 
-            // ── LOCK ENFORCEMENT ───────────────────────────────────
-            // Replace AI-generated slots with the exact locked color.
-            // This happens in Swift, not via the AI — 100% reliable.
             if !locked.isEmpty {
                 var colors = palette.colors
                 for (slotIndex, lockedColor) in locked {
                     guard slotIndex < colors.count else { continue }
-                    colors[slotIndex] = lockedColor   // exact hex + name, guaranteed
+                    colors[slotIndex] = lockedColor
                 }
                 palette = ColorPalette(title: palette.title, colors: colors)
             }
@@ -581,14 +573,11 @@ struct ContentView: View {
 
     // MARK: - Lock Toggle
 
-    /// Locking captures the EXACT current color at that slot as the immutable snapshot.
-    /// Unlocking removes it — that slot is free to be regenerated.
     private func toggleLock(at index: Int, color: GeneratedColor) {
         withAnimation(.spring(response: 0.3)) {
             if lockedSlots[index] != nil {
                 lockedSlots.removeValue(forKey: index)
             } else {
-                // Snapshot: store this exact color, immutable from now on
                 lockedSlots[index] = color
             }
         }
@@ -597,7 +586,6 @@ struct ContentView: View {
 
     // MARK: - Save
 
-    /// Saves the palette the user is CURRENTLY viewing (activeVariation).
     func savePalette() {
         guard let p = currentPalette else { return }
         let savedColors = p.colors.map { SavedColor(name: $0.name, hex: $0.hex) }
@@ -664,7 +652,7 @@ struct LockableColorCard: View {
                 HStack(spacing: 7) {
                     Text(color.name)
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color("AppText")) // Adaptive Text
                         .lineLimit(1)
 
                     if isLocked {
@@ -684,43 +672,22 @@ struct LockableColorCard: View {
 
                 Text(color.hex.uppercased())
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.38))
+                    .foregroundStyle(Color("AppText").opacity(0.45))
             }
 
             Spacer()
 
-            // Copy hex
-            /*Button {
-                UIPasteboard.general.string = color.hex
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                withAnimation(.spring(response: 0.3)) { copied = true }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    withAnimation { copied = false }
-                }
-            } label: {
-                Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(copied ? Color(hex: "#34C759") : Color.white.opacity(0.4))
-                    .frame(width: 34, height: 34)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(copied
-                                  ? Color(hex: "#34C759").opacity(0.13)
-                                  : Color.white.opacity(0.07))
-                    )
-            }
-*/
             // Lock toggle
             Button(action: onToggleLock) {
                 Image(systemName: isLocked ? "lock.fill" : "lock.open")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(isLocked ? Color(hex: "#A78BFA") : Color.white.opacity(0.32))
+                    .foregroundStyle(isLocked ? Color(hex: "#A78BFA") : Color("AppText").opacity(0.4))
                     .frame(width: 34, height: 34)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
                             .fill(isLocked
-                                  ? Color(hex: "#6C63FF").opacity(0.2)
-                                  : Color.white.opacity(0.07))
+                                  ? Color(hex: "#6C63FF").opacity(0.15)
+                                  : Color("AppText").opacity(0.07))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(
@@ -740,13 +707,13 @@ struct LockableColorCard: View {
             RoundedRectangle(cornerRadius: 18)
                 .fill(isLocked
                       ? Color(hex: "#6C63FF").opacity(0.07)
-                      : Color.white.opacity(0.05))
+                      : Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Background
                 .overlay(
                     RoundedRectangle(cornerRadius: 18)
                         .stroke(
                             isLocked
                                 ? Color(hex: "#6C63FF").opacity(0.28)
-                                : Color.white.opacity(0.07),
+                                : Color("AppText").opacity(0.07),
                             lineWidth: 1
                         )
                 )
@@ -771,16 +738,16 @@ struct PresetChip: View {
                     .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 1))
                 Text(preset.name)
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(isSelected ? .white : Color.white.opacity(0.55))
+                    .foregroundStyle(isSelected ? Color("AppText") : Color("AppText").opacity(0.55))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7)
             .background(
                 Capsule()
-                    .fill(isSelected ? Color.white.opacity(0.15) : Color.white.opacity(0.06))
+                    .fill(isSelected ? Color("AppText").opacity(0.15) : Color("AppText").opacity(0.06))
                     .overlay(
                         Capsule().stroke(
-                            isSelected ? Color.white.opacity(0.3) : Color.white.opacity(0.08),
+                            isSelected ? Color("AppText").opacity(0.3) : Color("AppText").opacity(0.08),
                             lineWidth: 1
                         )
                     )
