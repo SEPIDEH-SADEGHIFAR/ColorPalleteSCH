@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		53B535E62F3B369E00A3CDC0 /* ColorPalleteSCH.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ColorPalleteSCH.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		53B535E62F3B369E00A3CDC0 /* Awby.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Awby.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,7 +40,7 @@
 		53B535E72F3B369E00A3CDC0 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				53B535E62F3B369E00A3CDC0 /* ColorPalleteSCH.app */,
+				53B535E62F3B369E00A3CDC0 /* Awby.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		53B535E52F3B369E00A3CDC0 /* ColorPalleteSCH */ = {
+		53B535E52F3B369E00A3CDC0 /* Awby */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 53B535F12F3B369F00A3CDC0 /* Build configuration list for PBXNativeTarget "ColorPalleteSCH" */;
+			buildConfigurationList = 53B535F12F3B369F00A3CDC0 /* Build configuration list for PBXNativeTarget "Awby" */;
 			buildPhases = (
 				53B535E22F3B369E00A3CDC0 /* Sources */,
 				53B535E32F3B369E00A3CDC0 /* Frameworks */,
@@ -63,11 +63,11 @@
 			fileSystemSynchronizedGroups = (
 				53B535E82F3B369E00A3CDC0 /* ColorPalleteSCH */,
 			);
-			name = ColorPalleteSCH;
+			name = Awby;
 			packageProductDependencies = (
 			);
 			productName = ColorPalleteSCH;
-			productReference = 53B535E62F3B369E00A3CDC0 /* ColorPalleteSCH.app */;
+			productReference = 53B535E62F3B369E00A3CDC0 /* Awby.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 53B535E12F3B369E00A3CDC0 /* Build configuration list for PBXProject "ColorPalleteSCH" */;
+			buildConfigurationList = 53B535E12F3B369E00A3CDC0 /* Build configuration list for PBXProject "Awby" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				53B535E52F3B369E00A3CDC0 /* ColorPalleteSCH */,
+				53B535E52F3B369E00A3CDC0 /* Awby */,
 			);
 		};
 /* End PBXProject section */
@@ -254,6 +254,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Awby;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to the camera so you can take photos to extract colors from.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -299,6 +300,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Awby;
 				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to the camera so you can take photos to extract colors from.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -334,7 +336,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		53B535E12F3B369E00A3CDC0 /* Build configuration list for PBXProject "ColorPalleteSCH" */ = {
+		53B535E12F3B369E00A3CDC0 /* Build configuration list for PBXProject "Awby" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				53B535EF2F3B369F00A3CDC0 /* Debug */,
@@ -343,7 +345,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		53B535F12F3B369F00A3CDC0 /* Build configuration list for PBXNativeTarget "ColorPalleteSCH" */ = {
+		53B535F12F3B369F00A3CDC0 /* Build configuration list for PBXNativeTarget "Awby" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				53B535F22F3B369F00A3CDC0 /* Debug */,
