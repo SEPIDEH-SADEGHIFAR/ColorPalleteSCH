@@ -9,12 +9,16 @@ import SwiftUI
 import SwiftData
 
 @main
-struct ColorPalleteSCHApp: App {
-    var body: some Scene {
-        WindowGroup {
-           
-            MainTabView()
-        }
-        .modelContainer(for: SavedPalette.self)
-    }
-}
+  struct AWBYApp: App {
+      @AppStorage("hasCompletedOnboarding") var onboarded = false
+       var body: some Scene {
+          WindowGroup {
+               if onboarded {
+                  MainTabView()
+                      .modelContainer(for: [SavedPalette.self, SavedColor.self])
+             } else {
+                  OnboardingView()
+             }
+           }
+       }
+   }
