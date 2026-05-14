@@ -43,9 +43,9 @@ struct HomeView: View {
                         Button(action: { showAddMenu = true }) {
                             Image(systemName: "plus")
                                 .font(.title3.bold())
-                                .foregroundColor(.white)
+                                .foregroundColor(Color("AppBackground"))
                                 .frame(width: 50, height: 50)
-                                .background(Color.black)
+                                .background(Color("AppText"))
                                 .clipShape(Circle())
                         }
                     }

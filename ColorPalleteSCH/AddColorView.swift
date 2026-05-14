@@ -33,12 +33,15 @@ struct AddColorView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .tint(Color("AppText"))
+                        .fontWeight(.semibold)
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
                         saveColor()
                     }
+                    .tint(Color("AppText"))
                 }
             }
         }
