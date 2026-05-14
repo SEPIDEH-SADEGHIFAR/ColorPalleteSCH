@@ -8,6 +8,7 @@
 import SwiftUI
 
 // This view displays the AI Generated Result
+@available(iOS 26.0, *)
 struct PaletteView: View {
     let palette: ColorPalette // Uses the Generated Model
 

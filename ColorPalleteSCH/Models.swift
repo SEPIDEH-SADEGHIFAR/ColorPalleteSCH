@@ -10,6 +10,7 @@ import FoundationModels
 
 // --- Keep your existing Generable structs for the AI ---
 
+@available(iOS 26.0, *)
 @Generable(description: "A single color in a palette with a name and hex code")
 struct GeneratedColor: Codable { // Ensure Codable is here
     @Guide(description: "A descriptive name for the color, e.g. 'Ocean Blue'")
@@ -18,7 +19,7 @@ struct GeneratedColor: Codable { // Ensure Codable is here
     @Guide(description: "The hex color code including the # prefix, e.g. '#3A7BD5'")
     var hex: String
 }
-
+@available(iOS 26.0, *)
 @Generable(description: "A color palette inspired by a given base color")
 struct ColorPalette: Codable {
     @Guide(description: "A short, evocative title for the palette")
