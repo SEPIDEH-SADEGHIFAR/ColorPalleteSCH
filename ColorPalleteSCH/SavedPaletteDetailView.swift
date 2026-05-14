@@ -52,9 +52,9 @@ struct SavedPaletteDetailView: View {
                                         .minimumScaleFactor(0.8)
                                         .submitLabel(.done)
                                     
-                                    Image(systemName: "pencil")
+                                   /* Image(systemName: "pencil")
                                         .font(.system(size: 16, weight: .bold))
-                                        .foregroundStyle(Color("AppText").opacity(0.25))
+                                        .foregroundStyle(Color("AppText").opacity(0.25))*/
                                 }
                                 
                                 Text("\(palette.colors.count) colors")
@@ -153,12 +153,12 @@ struct SavedPaletteDetailView: View {
                     .foregroundStyle(Color("AppText")) // Adaptive Text
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                   // .background(.ultraThinMaterial)
+                   // .background(.ultraThinMaterial) // Added frosted glass background
                     .clipShape(Capsule())
                 }
             }
         }
-        .toolbarBackground(Color("AppBackground"), for: .navigationBar) // Adaptive Toolbar
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar) // Native iOS Glass Effect
         .onAppear {
             withAnimation(.spring(response: 0.55, dampingFraction: 0.82)) { animateIn = true }
         }
@@ -176,7 +176,7 @@ struct SavedPaletteDetailView: View {
         }
     }
 
-    // Instant-delete fix to prevent lag
+    // Instant-delete fix to prevent lag (Kept EXACTLY as you requested)
     private func deleteColor(_ color: SavedColor) {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
             if let index = palette.colors.firstIndex(of: color) {
