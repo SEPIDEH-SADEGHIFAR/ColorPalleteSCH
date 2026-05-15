@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import WidgetKit
 
 // MARK: - Saved Palette Detail View
 
@@ -14,6 +15,9 @@ struct SavedPaletteDetailView: View {
     @State private var showPaletteExport = false
     @State private var copiedHex: String? = nil
     @State private var animateIn = false
+    
+    // Tracks if the widget was successfully set to show the checkmark
+    @State private var isWidgetSet = false
 
     var body: some View {
         ZStack {
@@ -35,7 +39,7 @@ struct SavedPaletteDetailView: View {
                     // 2. Content Area (Title + Colors)
                     VStack(alignment: .leading, spacing: 24) {
                         
-                        // Info Header & Export Button
+                        // Info Header & Buttons
                         HStack(alignment: .top) {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("\(palette.timestamp.relativeFormatted().uppercased())")
@@ -51,10 +55,6 @@ struct SavedPaletteDetailView: View {
                                         .lineLimit(1)
                                         .minimumScaleFactor(0.8)
                                         .submitLabel(.done)
-                                    
-                                   /* Image(systemName: "pencil")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundStyle(Color("AppText").opacity(0.25))*/
                                 }
                                 
                                 Text("\(palette.colors.count) colors")
@@ -63,6 +63,21 @@ struct SavedPaletteDetailView: View {
                             }
                             
                             Spacer(minLength: 16)
+                            
+                            // SET AS WIDGET BUTTON
+                            Button(action: setAsWidget) {
+                                Image(systemName: isWidgetSet ? "checkmark" : "rectangle.inset.filled.and.person.filled")
+                                    .font(.headline)
+                                    .foregroundColor(isWidgetSet ? .green : Color("AppText")) // Adaptive
+                                    .frame(width: 44, height: 44)
+                                    .background(Color(uiColor: .secondarySystemGroupedBackground)) // Adaptive Card
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                    .shadow(color: Color("AppText").opacity(0.05), radius: 5, y: 2)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(isWidgetSet ? Color.green.opacity(0.5) : Color("AppText").opacity(0.06), lineWidth: 1)
+                                    )
+                            }
                             
                             // Full Palette Export Button
                             Button(action: { showPaletteExport = true }) {
@@ -176,7 +191,7 @@ struct SavedPaletteDetailView: View {
         }
     }
 
-    // Instant-delete fix to prevent lag (Kept EXACTLY as you requested)
+    // Instant-delete fix to prevent lag
     private func deleteColor(_ color: SavedColor) {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
             if let index = palette.colors.firstIndex(of: color) {
@@ -187,6 +202,43 @@ struct SavedPaletteDetailView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             modelContext.delete(color)
             try? modelContext.save()
+        }
+    }
+    
+    // Send this palette to the Home Screen Widget
+    private func setAsWidget() {
+        // --- TRIPWIRE ---
+        print("🚨 BUTTON WAS TAPPED! The function is running.")
+        
+        let widgetColors = palette.colors.map { color in
+            WidgetPalette.WidgetColor(name: color.name, hex: color.hex)
+        }
+        
+        let widgetPalette = WidgetPalette(
+            title: palette.title,
+            colors: widgetColors
+        )
+        
+        WidgetDataManager.save(widgetPalette)
+        WidgetCenter.shared.reloadAllTimelines()
+        
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        
+        withAnimation(.spring(response: 0.3)) {
+            isWidgetSet = true
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            withAnimation {
+                isWidgetSet = false
+            }
+        }
+        
+        // --- DIAGNOSTIC TEST ---
+        if let saved = WidgetDataManager.load() {
+            print("✅ SUCCESS! Saved palette to App Group: \(saved.title)")
+        } else {
+            print("❌ FAILED! App Group is broken or identifier doesn't match.")
         }
     }
 }
