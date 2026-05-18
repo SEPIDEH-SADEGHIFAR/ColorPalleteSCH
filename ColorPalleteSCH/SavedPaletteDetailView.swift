@@ -12,6 +12,7 @@ struct SavedPaletteDetailView: View {
     @State private var isAddingColor = false
     @State private var colorToExport: SavedColor?
     @State private var colorToEdit: SavedColor?
+    @State private var colorToDetail: SavedColor? // 👈 NEW: Tracks color for ColorDetailView
     @State private var showPaletteExport = false
     @State private var copiedHex: String? = nil
     @State private var animateIn = false
@@ -107,6 +108,7 @@ struct SavedPaletteDetailView: View {
                                 DetailColorRow(
                                     color: color,
                                     copiedHex: $copiedHex,
+                                    onDetail: { colorToDetail = color }, // 👈 NEW: Pass action to open detail view
                                     onEdit: { colorToEdit = color },
                                     onExport: { colorToExport = color },
                                     onDelete: {
@@ -168,7 +170,6 @@ struct SavedPaletteDetailView: View {
                     .foregroundStyle(Color("AppText")) // Adaptive Text
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                   // .background(.ultraThinMaterial) // Added frosted glass background
                     .clipShape(Capsule())
                 }
             }
@@ -188,6 +189,10 @@ struct SavedPaletteDetailView: View {
         }
         .sheet(isPresented: $showPaletteExport) {
             ExportPalettePreviewView(palette: palette)
+        }
+        // 👈 NEW: Present the Color Detail View when a color is tapped
+        .sheet(item: $colorToDetail) { color in
+            ColorDetailView(color: color)
         }
     }
 
@@ -248,6 +253,7 @@ struct SavedPaletteDetailView: View {
 struct DetailColorRow: View {
     let color: SavedColor
     @Binding var copiedHex: String?
+    let onDetail: () -> Void // 👈 NEW: Action for when the swatch is tapped
     let onEdit: () -> Void
     let onExport: () -> Void
     let onDelete: () -> Void
@@ -264,6 +270,7 @@ struct DetailColorRow: View {
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(Color("AppText").opacity(0.08), lineWidth: 1)
                 )
+                .onTapGesture(perform: onDetail) // 👈 NEW: Tap to open detail
 
             // Name + hex
             VStack(alignment: .leading, spacing: 4) {
@@ -274,11 +281,13 @@ struct DetailColorRow: View {
                     .font(.system(size: 12, weight: .semibold, design: .monospaced))
                     .foregroundStyle(Color("AppText").opacity(0.38)) // Adaptive
             }
+            .contentShape(Rectangle()) // Makes the whole text area tappable
+            .onTapGesture(perform: onDetail) // 👈 NEW: Tap to open detail
 
             Spacer()
 
             // Copy Button
-            Button {
+           /* Button {
                 UIPasteboard.general.string = color.hex
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 withAnimation(.spring(response: 0.3)) { copiedHex = color.hex }
@@ -298,7 +307,7 @@ struct DetailColorRow: View {
                                   ? Color(hex: "#34C759").opacity(0.1)
                                   : Color("AppText").opacity(0.07))
                     )
-            }
+            }*/
 
             // Edit Button
             Button(action: onEdit) {
