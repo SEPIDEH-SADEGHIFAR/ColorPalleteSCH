@@ -7,7 +7,7 @@
 		<key>AWBYWidgetExtensionExtension.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 		<key>Awby.xcscheme_^#shared#^_</key>
 		<dict>
@@ -18,6 +18,19 @@
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>53A6192D2FB70D79006C139A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>53B535E52F3B369E00A3CDC0</key>
+		<dict>
+			<key>primary</key>
+			<true/>
 		</dict>
 	</dict>
 </dict>

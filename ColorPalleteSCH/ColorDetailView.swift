@@ -77,7 +77,7 @@ struct ColorDetailView: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(Color("AppText").opacity(0.55))
                             .frame(width: 30, height: 30)
-                            .background(Color("AppText").opacity(0.08))
+                            //.background(Color("AppText").opacity(0.08))
                             .clipShape(Circle())
                     }
                 }
@@ -89,7 +89,7 @@ struct ColorDetailView: View {
                     }
                 }
             }
-            .toolbarBackground(Color("AppBackground"), for: .navigationBar)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         }
         .presentationDetents([.large])
         .onAppear {

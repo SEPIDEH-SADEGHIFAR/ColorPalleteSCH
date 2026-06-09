@@ -1,274 +1,135 @@
 import SwiftUI
 import SwiftData
-
-// ─────────────────────────────────────────────────────────────
-// MARK: — XCODE SETUP (do this first, then paste this file)
-// ─────────────────────────────────────────────────────────────
-// 1. In Xcode → select your app TARGET → "General" tab
-// 2. Change "Minimum Deployments" from iOS 26 → iOS 17.0
-// 3. Also update Models.swift (see note at bottom of this file)
-// ─────────────────────────────────────────────────────────────
-
-import FoundationModels   // Still imported — @available guards prevent it running on older OS
-
+import FoundationModels
 
 // ═════════════════════════════════════════════════════════════
-// MARK: - AVAILABILITY GATE VIEW
-// This is the ContentView HomeView already calls.
-// It decides which experience to show based on the OS version.
+// MARK: - GATE
 // ═════════════════════════════════════════════════════════════
 
 struct ContentView: View {
     var body: some View {
-        if #available(iOS 26.0, *) {
-            AIGeneratorView()
-        } else {
-            AIUnavailableView()
-        }
+        if #available(iOS 26.0, *) { AIGeneratorView() }
+        else { AIUnavailableView() }
     }
 }
 
-
 // ═════════════════════════════════════════════════════════════
-// MARK: - AI UNAVAILABLE VIEW
-// Shown to users on iOS 17–25. Matches the dark studio aesthetic.
-// Explains the requirement clearly and positively.
+// MARK: - UNAVAILABLE (iOS < 26)
 // ═════════════════════════════════════════════════════════════
 
 struct AIUnavailableView: View {
     @Environment(\.dismiss) private var dismiss
-
-    private let availableFeatures: [(icon: String, color: String, title: String, subtitle: String)] = [
-        ("paintbrush.fill",          "#FF8C42", "Manual Studio",    "Build any palette by hand"),
-        ("photo.on.rectangle.angled","#2DD4BF", "Image Studio",     "Extract colors from photos"),
-        ("sparkle.magnifyingglass",  "#F59E0B", "Color Explorer",   "Discover any color's harmonies"),
-        ("square.and.arrow.down",    "#6DBF8A", "Export & Share",   "11 sticker designs per color"),
+    private let features = [
+        ("paintbrush.fill",           "#FF8C42", "Manual Studio",  "Build any palette by hand"),
+        ("photo.on.rectangle.angled", "#2DD4BF", "Image Studio",   "Extract colors from photos"),
+        ("sparkle.magnifyingglass",   "#F59E0B", "Color Explorer", "Discover harmonies"),
+        ("square.and.arrow.down",     "#6DBF8A", "Export & Share", "11 sticker designs per color"),
     ]
-
     var body: some View {
         NavigationStack {
             ZStack {
                 Color(hex: "#0D0D0D").ignoresSafeArea()
-
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 0) {
-
-                        // ── Hero ─────────────────────────────────
-                        VStack(spacing: 20) {
-                            // Unavailable icon
+                    VStack(spacing: 32) {
+                        VStack(spacing: 16) {
                             ZStack {
-                                Circle()
-                                    .fill(
-                                        RadialGradient(
-                                            colors: [
-                                                Color(hex: "#6C63FF").opacity(0.4),
-                                                Color.clear
-                                            ],
-                                            center: .center,
-                                            startRadius: 0,
-                                            endRadius: 60
-                                        )
-                                    )
-                                    .frame(width: 120, height: 120)
-                                    .blur(radius: 20)
-
-                                Circle()
-                                    .stroke(Color(hex: "#6C63FF").opacity(0.2), lineWidth: 1)
-                                    .frame(width: 80, height: 80)
-
-                                ZStack {
-                                    Circle()
-                                        .fill(Color(hex: "#6C63FF").opacity(0.15))
-                                        .frame(width: 64, height: 64)
-                                    Image(systemName: "wand.and.stars")
-                                        .font(.system(size: 26, weight: .medium))
-                                        .foregroundStyle(Color(hex: "#6C63FF"))
-                                }
+                                Circle().fill(RadialGradient(colors: [Color(hex: "#6C63FF").opacity(0.4), .clear], center: .center, startRadius: 0, endRadius: 60)).frame(width: 120, height: 120).blur(radius: 20)
+                                Circle().stroke(Color(hex: "#6C63FF").opacity(0.2), lineWidth: 1).frame(width: 80, height: 80)
+                                Circle().fill(Color(hex: "#6C63FF").opacity(0.15)).frame(width: 64, height: 64)
+                                Image(systemName: "wand.and.stars").font(.system(size: 26)).foregroundStyle(Color(hex: "#6C63FF"))
                             }
-
-                            VStack(spacing: 10) {
-                                Text("AI STUDIO")
-                                    .font(.system(size: 11, weight: .bold))
-                                    .tracking(3)
-                                    .foregroundStyle(Color(hex: "#6C63FF"))
-
-                                Text("Requires\niOS 26")
-                                    .font(.system(size: 38, weight: .bold, design: .rounded))
-                                    .foregroundStyle(.white)
-                                    .multilineTextAlignment(.center)
-                                    .kerning(-0.5)
-
-                                Text("AI palette generation uses Apple Intelligence,\nwhich is available on iOS 26 and later.")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundStyle(Color.white.opacity(0.45))
-                                    .multilineTextAlignment(.center)
-                                    .lineSpacing(3)
-                            }
-                        }
-                        .padding(.top, 48)
-
-                        // ── Current iOS chip ──────────────────────
-                        HStack(spacing: 8) {
-                            Image(systemName: "iphone")
-                                .font(.system(size: 13, weight: .semibold))
-                            Text("Your device is running iOS \(currentIOSVersion)")
-                                .font(.system(size: 13, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.white.opacity(0.35))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 9)
-                        .background(
-                            Capsule()
-                                .fill(Color.white.opacity(0.06))
-                                .overlay(
-                                    Capsule()
-                                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                                )
-                        )
-                        .padding(.top, 24)
-
-                        // ── How to get it ─────────────────────────
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("HOW TO GET IT")
-                                .font(.system(size: 10, weight: .bold))
-                                .tracking(2.5)
-                                .foregroundStyle(Color.white.opacity(0.28))
-
-                            VStack(spacing: 10) {
-                                UpgradeStepRow(
-                                    number: "1",
-                                    text: "Update your iPhone to iOS 26 via Settings → General → Software Update"
-                                )
-                                UpgradeStepRow(
-                                    number: "2",
-                                    text: "Enable Apple Intelligence in Settings → Apple Intelligence & Siri"
-                                )
-                                UpgradeStepRow(
-                                    number: "3",
-                                    text: "Come back to AWBY — AI generation will unlock automatically"
-                                )
-                            }
-                        }
-                        .padding(.top, 36)
-                        .padding(.horizontal, 22)
-
-                        // ── Compatible features ───────────────────
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text("AVAILABLE ON YOUR DEVICE")
-                                .font(.system(size: 10, weight: .bold))
-                                .tracking(2.5)
-                                .foregroundStyle(Color.white.opacity(0.28))
-
-                            VStack(spacing: 10) {
-                                ForEach(availableFeatures, id: \.title) { feature in
-                                    HStack(spacing: 14) {
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(hex: feature.color))
-                                            .frame(width: 44, height: 44)
-                                            .overlay(
-                                                Image(systemName: feature.icon)
-                                                    .font(.system(size: 17, weight: .semibold))
-                                                    .foregroundStyle(.white)
-                                            )
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(feature.title)
-                                                .font(.system(size: 15, weight: .bold, design: .rounded))
-                                                .foregroundStyle(.white)
-                                            Text(feature.subtitle)
-                                                .font(.system(size: 12, weight: .medium))
-                                                .foregroundStyle(Color.white.opacity(0.4))
-                                        }
-                                        Spacer()
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .font(.system(size: 18))
-                                            .foregroundStyle(Color(hex: "#34C759"))
+                            Text("AI STUDIO").font(.system(size: 11, weight: .bold)).tracking(3).foregroundStyle(Color(hex: "#6C63FF"))
+                            Text("Requires iOS 26").font(.system(size: 32, weight: .bold, design: .rounded)).foregroundStyle(.white).multilineTextAlignment(.center)
+                            Text("AI palette generation uses Apple Intelligence, available on iOS 26 and later.").font(.system(size: 14, weight: .medium)).foregroundStyle(.white.opacity(0.45)).multilineTextAlignment(.center).lineSpacing(3)
+                        }.padding(.top, 48)
+                        VStack(spacing: 10) {
+                            Text("AVAILABLE ON YOUR DEVICE").font(.system(size: 9, weight: .bold)).tracking(2.5).foregroundStyle(.white.opacity(0.28))
+                            ForEach(features, id: \.2) { icon, color, title, sub in
+                                HStack(spacing: 14) {
+                                    RoundedRectangle(cornerRadius: 12).fill(Color(hex: color)).frame(width: 44, height: 44).overlay(Image(systemName: icon).font(.system(size: 17, weight: .semibold)).foregroundStyle(.white))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(title).font(.system(size: 15, weight: .bold)).foregroundStyle(.white)
+                                        Text(sub).font(.system(size: 12)).foregroundStyle(.white.opacity(0.4))
                                     }
-                                    .padding(14)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 18)
-                                            .fill(Color.white.opacity(0.05))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 18)
-                                                    .stroke(Color.white.opacity(0.07), lineWidth: 1)
-                                            )
-                                    )
-                                }
+                                    Spacer()
+                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(Color(hex: "#34C759"))
+                                }.padding(14).background(RoundedRectangle(cornerRadius: 16).fill(.white.opacity(0.05)))
                             }
-                        }
-                        .padding(.top, 32)
-                        .padding(.horizontal, 22)
-
-                        // ── Close button ──────────────────────────
+                        }.padding(.horizontal, 22)
                         Button { dismiss() } label: {
-                            Text("Got It")
-                                .font(.system(size: 17, weight: .bold, design: .rounded))
-                                .foregroundStyle(Color(hex: "#0D0D0D"))
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 58)
-                                .background(RoundedRectangle(cornerRadius: 18).fill(.white))
-                        }
-                        .padding(.horizontal, 22)
-                        .padding(.top, 36)
-                        .padding(.bottom, 52)
+                            Text("Got It").font(.system(size: 17, weight: .bold)).foregroundStyle(Color(hex: "#0D0D0D")).frame(maxWidth: .infinity).frame(height: 56).background(RoundedRectangle(cornerRadius: 16).fill(.white))
+                        }.padding(.horizontal, 22).padding(.bottom, 40)
                     }
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.55))
-                            .frame(width: 30, height: 30)
-                            .background(Color.white.opacity(0.09))
-                            .clipShape(Circle())
-                    }
+            .toolbar { ToolbarItem(placement: .cancellationAction) {
+                Button { dismiss() } label: {
+                    Image(systemName: "xmark").foregroundStyle(.white.opacity(0.55)).frame(width: 30, height: 30).background(.white.opacity(0.09)).clipShape(Circle())
                 }
-            }
-            .toolbarBackground(Color(hex: "#0D0D0D"), for: .navigationBar)
+            }}
+            .toolbarBackground(Color("AppBackground"), for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
         }
     }
-
-    private var currentIOSVersion: String {
-        let v = ProcessInfo.processInfo.operatingSystemVersion
-        return "\(v.majorVersion).\(v.minorVersion)"
-    }
 }
 
-// MARK: - Upgrade Step Row
+// ═════════════════════════════════════════════════════════════
+// MARK: - PALETTE STYLE PRESET
+// ═════════════════════════════════════════════════════════════
 
-private struct UpgradeStepRow: View {
-    let number: String
-    let text: String
+enum PaletteStylePreset: String, CaseIterable, Identifiable {
+    case all        = "All"
+    case sensible   = "Sensible"
+    case fancyLight = "Fancy Light"
+    case fancyDark  = "Fancy Dark"
+    case tarnish    = "Tarnish"
+    case pastel     = "Pastel"
+    case pimp       = "Pimp"
+    case intense    = "Intense"
 
-    var body: some View {
-        HStack(alignment: .top, spacing: 14) {
-            Text(number)
-                .font(.system(size: 13, weight: .black, design: .rounded))
-                .foregroundStyle(Color(hex: "#6C63FF"))
-                .frame(width: 28, height: 28)
-                .background(
-                    Circle()
-                        .fill(Color(hex: "#6C63FF").opacity(0.15))
-                        .overlay(Circle().stroke(Color(hex: "#6C63FF").opacity(0.3), lineWidth: 1))
-                )
-            Text(text)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.55))
-                .lineSpacing(2)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer()
+    var id: String { rawValue }
+
+    var sliderValues: (sMin: Double, sMax: Double, lMin: Double, lMax: Double) {
+        switch self {
+        case .all:        return (0.00, 1.00, 0.00, 1.00)
+        case .sensible:   return (0.35, 0.75, 0.30, 0.70)
+        case .fancyLight: return (0.40, 0.85, 0.60, 0.92)
+        case .fancyDark:  return (0.50, 0.95, 0.08, 0.42)
+        case .tarnish:    return (0.04, 0.30, 0.20, 0.62)
+        case .pastel:     return (0.20, 0.52, 0.72, 0.95)
+        case .pimp:       return (0.75, 1.00, 0.35, 0.70)
+        case .intense:    return (0.70, 1.00, 0.15, 0.85)
+        }
+    }
+
+    var promptDescription: String {
+        switch self {
+        case .all:        return "No style constraint — be creative and make it genuinely beautiful"
+        case .sensible:   return "Balanced, professional — ideal for UI, product design, branding"
+        case .fancyLight: return "Bright, airy, luminous — like luxury editorial or high fashion"
+        case .fancyDark:  return "Rich, cinematic, moody — premium dark energy"
+        case .tarnish:    return "Desaturated, oxidised, weathered — aged metal or worn ceramics"
+        case .pastel:     return "Soft, chalky, tender — watercolour, confectionery, hazy sunrise"
+        case .pimp:       return "Maximalist, flamboyant, loud — bold and unapologetic"
+        case .intense:    return "Electric, vivid, high contrast — strong saturation, dramatic impact"
+        }
+    }
+
+    // Representative colors shown on each chip — computed from the preset's own ranges
+    var chipColors: [Color] {
+        let v = sliderValues
+        let midS = (v.sMin + v.sMax) / 2
+        let midL = (v.lMin + v.lMax) / 2
+        let b = midL + midS * min(midL, 1 - midL)
+        let sb = b == 0 ? 0.0 : 2 * (1 - midL / b)
+        return [0.08, 0.45, 0.72].map { h in
+            Color(hue: h, saturation: min(1, sb), brightness: min(1, b))
         }
     }
 }
 
-
 // ═════════════════════════════════════════════════════════════
-// MARK: - AI GENERATOR VIEW  (iOS 26+ ONLY)
-// This is the full AI experience — renamed from ContentView.
-// The @available annotation prevents it compiling on older OS.
+// MARK: - AI GENERATOR VIEW  (iOS 26+)
 // ═════════════════════════════════════════════════════════════
 
 @available(iOS 26.0, *)
@@ -276,54 +137,39 @@ struct AIGeneratorView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    @State private var selectedColor: Color = Color(hex: "#6C63FF")
-    @State private var variations: [ColorPalette] = []
-    @State private var activeVariation: Int = 0
-    @State private var lockedSlots: [Int: GeneratedColor] = [:]
-    @State private var isGenerating = false
-    @State private var savedSuccessfully = false
-    @State private var animateCards = false
-    @State private var pulseRing = false
-    @State private var dragOffset: CGFloat = 0
+    // ── Parameters ──────────────────────────────────────────────
+    @State private var colorCount: Int    = 5
+    @State private var hueMin:  Double    = 0.00
+    @State private var hueMax:  Double    = 1.00
+    @State private var satMin:  Double    = 0.00
+    @State private var satMax:  Double    = 1.00
+    @State private var lumMin:  Double    = 0.00
+    @State private var lumMax:  Double    = 1.00
+    @State private var preset:  PaletteStylePreset = .all
 
-    let sessions: [LanguageModelSession] = {
-        let s0 = LanguageModelSession(instructions: """
-        You are a bold typographic designer who creates HIGH-CONTRAST editorial palettes.
-        STRICT SLOT RULES:
-        • Slot 1 (DARK ANCHOR): Brightness 5–18%. Near-black with a hint of color.
-        • Slot 2 (VIBRANT HERO): Saturation 85–100%, Brightness 55–75%. The loudest color.
-        • Slot 3 (ACCENT POP): COMPLETELY DIFFERENT hue from Slot 2. Saturation > 80%.
-        • Slot 4 (LIGHT NEUTRAL): Brightness 88–97%, Saturation < 20%.
-        • Slot 5 (MID BRIDGE): Saturation 50–70%, Brightness 35–55%.
-        FORBIDDEN: Any two slots sharing a hue within 40° of each other.
-        """)
-        let s1 = LanguageModelSession(instructions: """
-        You are a fashion-forward colorist known for UNEXPECTED, rule-breaking combinations.
-        STRICT SLOT RULES:
-        • Slot 1 (WARM TONE): Hue 0°–60°. Medium-high saturation.
-        • Slot 2 (COOL SHOCK): Hue 180°–260°. Must clash beautifully with Slot 1.
-        • Slot 3 (EARTH GROUNDING): Saturation 10–30%. Beige, clay, stone family.
-        • Slot 4 (NEON SURPRISE): Saturation > 90%, Brightness > 80%.
-        • Slot 5 (DARK DEPTH): Brightness < 22%.
-        FORBIDDEN: Slots 1, 2, and 4 cannot share a hue family.
-        """)
-        let s2 = LanguageModelSession(instructions: """
-        You are a luxury brand color director creating SOPHISTICATED TONAL palettes.
-        STRICT SLOT RULES:
-        • Slot 1 (DEEP SHADOW): Brightness 8–20%, Saturation 40–70%.
-        • Slot 2 (RICH MIDTONE): Brightness 35–50%, Saturation 60–85%.
-        • Slot 3 (LUMINOUS HIGHLIGHT): Brightness 80–92%, Saturation 15–40%.
-        • Slot 4 (COMPLEMENTARY TWIST): Jump 150°–210° on hue wheel. Saturation 70–90%.
-        • Slot 5 (METALLIC NEUTRAL): Saturation 5–15%, Brightness 55–78%.
-        CRITICAL: Slots 1, 2, and 3 must share the same dominant hue (within 30°).
-        """)
-        return [s0, s1, s2]
-    }()
+    // ── Result ───────────────────────────────────────────────────
+    @State private var palette:     ColorPalette?           = nil
+    @State private var lockedSlots: [Int: GeneratedColor]   = [:]
 
-    var currentPalette: ColorPalette? {
-        guard activeVariation < variations.count else { return nil }
-        return variations[activeVariation]
-    }
+    // ── UI ───────────────────────────────────────────────────────
+    @State private var isGenerating  = false
+    @State private var savedOK       = false
+    @State private var animateCards  = false
+    @State private var animateIn     = false
+
+    // ── AI session ────────────────────────────────────────────────
+    let session = LanguageModelSession(instructions: """
+    You are a world-class color palette designer.
+    Create beautiful, emotionally resonant palettes that feel intentional and well-crafted.
+    Rules:
+    • Return EXACTLY the number of colors requested.
+    • Each hex code must be valid 6-digit hex starting with #.
+    • Names: evocative and poetic, 2–3 words (e.g. "Arctic Whisper", "Ember Glow").
+    • Title: a short poetic phrase, 3–5 words, capturing the palette's mood.
+    • Make colors HARMONIOUS — they should tell a visual story together.
+    Note: HSL values will be mathematically enforced after your response.
+    Focus purely on CREATIVITY and HARMONY.
+    """)
 
     var body: some View {
         NavigationStack {
@@ -332,11 +178,11 @@ struct AIGeneratorView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
                         headerSection
-                        colorPickerHero.padding(.top, 32)
-                        generateButton.padding(.top, 28)
-                        if !variations.isEmpty {
-                            variationsSection
-                                .padding(.top, 36)
+                        parametersCard.padding(.top, 24)
+                        presetsRow.padding(.top, 16)
+                        generateButton.padding(.top, 20)
+                        if let p = palette {
+                            resultSection(p).padding(.top, 36)
                                 .transition(.opacity.combined(with: .move(edge: .bottom)))
                         }
                         Spacer(minLength: 60)
@@ -350,579 +196,762 @@ struct AIGeneratorView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(Color("AppText").opacity(0.6))
+                            .foregroundStyle(Color("AppText").opacity(0.5))
                             .frame(width: 32, height: 32)
-                            .background(Color("AppText").opacity(0.1))
+                            .background(Color("AppText").opacity(0.07))
                             .clipShape(Circle())
                     }
                 }
             }
             .toolbarBackground(Color("AppBackground"), for: .navigationBar)
+            .onAppear {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.82)) { animateIn = true }
+            }
         }
     }
 
-    // MARK: - Header
+    // MARK: ── Header ─────────────────────────────────────────────
 
     private var headerSection: some View {
         HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text("AI STUDIO")
-                    .font(.system(size: 11, weight: .semibold))
-                    .tracking(3)
+                    .font(.system(size: 11, weight: .bold)).tracking(3)
                     .foregroundStyle(Color(hex: "#6C63FF"))
                 Text("Generate\nPalette")
                     .font(.system(size: 38, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color("AppText"))
+                    .foregroundStyle(Color("AppText")).kerning(-1)
             }
             Spacer()
-           /* ZStack {
-                Circle()
-                    .fill(RadialGradient(colors: [selectedColor.opacity(0.55), .clear],
-                                        center: .center, startRadius: 0, endRadius: 50))
-                    .frame(width: 100, height: 100).blur(radius: 18)
-                Circle()
-                    .stroke(selectedColor.opacity(0.28), lineWidth: 1)
-                    .frame(width: 60, height: 60)
-                    .scaleEffect(pulseRing ? 1.35 : 1.0)
-                    .opacity(pulseRing ? 0 : 0.8)
-                    .animation(isGenerating
-                               ? .easeOut(duration: 1.1).repeatForever(autoreverses: false)
-                               : .default, value: pulseRing)
-                Circle()
-                    .fill(selectedColor)
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Image(systemName: "wand.and.stars")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundStyle(.white)
-                    )
+            // Orb — reflects mid-hue of current range
+            let midH = (hueMin + hueMax) / 2
+            let orbC  = Color(hue: midH, saturation: 0.78, brightness: 0.85)
+            /*ZStack {
+                Circle().fill(RadialGradient(colors: [orbC.opacity(0.45), .clear], center: .center, startRadius: 0, endRadius: 44)).frame(width: 88, height: 88).blur(radius: 14)
+                Circle().stroke(orbC.opacity(0.22), lineWidth: 1).frame(width: 58, height: 58)
+                Circle().fill(orbC).frame(width: 44, height: 44)
+                    .overlay(Image(systemName: "wand.and.stars").font(.system(size: 17, weight: .medium)).foregroundStyle(.white))
+                    .shadow(color: orbC.opacity(0.4), radius: 10, y: 4)
             }*/
+            .animation(.easeInOut(duration: 0.3), value: midH)
         }
         .padding(.top, 20)
+        .opacity(animateIn ? 1 : 0).offset(y: animateIn ? 0 : -12)
+        .animation(.spring(response: 0.55, dampingFraction: 0.82).delay(0.04), value: animateIn)
     }
 
-    // MARK: - Color Picker Hero
+    // MARK: ── Parameters Card ────────────────────────────────────
+    // ONE unified card — not 4 separate ones.
+    // Each section uses the app's standard label+value header.
 
-    private var colorPickerHero: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 28)
-                    .fill(selectedColor)
-                    .frame(height: 150)
-                    .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color.white.opacity(0.1), lineWidth: 1))
-                VStack(spacing: 6) {
-                    Text(selectedColor.toHex() ?? "#000000")
-                        .font(.system(size: 22, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.3), radius: 4)
-                    Text("Base Color")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.8))
-                        .shadow(color: .black.opacity(0.3), radius: 4)
+    private var parametersCard: some View {
+        VStack(spacing: 0) {
+            // Colors
+            paramSection {
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        rowHeader("COLORS", value: "\(colorCount) colors")
+                        Text("How many colors to generate")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color("AppText").opacity(0.38))
+                    }
+                    Spacer(minLength: 16)
+                    // +/− stepper
+                    HStack(spacing: 0) {
+                        countBtn(icon: "minus", enabled: colorCount > 2) { colorCount -= 1 }
+                        Text("\(colorCount)")
+                            .font(.system(size: 18, weight: .black, design: .rounded))
+                            .foregroundStyle(Color(hex: "#6C63FF"))
+                            .frame(width: 38)
+                            .animation(.spring(response: 0.22), value: colorCount)
+                        countBtn(icon: "plus", enabled: colorCount < 12) { colorCount += 1 }
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color("AppText").opacity(0.06))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color("AppText").opacity(0.09), lineWidth: 1))
+                    )
                 }
             }
-            HStack(spacing: 14) {
-                ColorPicker("", selection: $selectedColor).labelsHidden()
-                    .scaleEffect(1.3).frame(width: 44, height: 44)
-                Text("Tap the circle to pick any color")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color("AppText").opacity(0.5))
-                Spacer()
-            }.padding(.horizontal, 4)
-            VStack(alignment: .leading, spacing: 10) {
-                Text("QUICK PRESETS")
-                    .font(.system(size: 10, weight: .semibold)).tracking(2)
-                    .foregroundStyle(Color("AppText").opacity(0.4))
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(ColorPreset.all, id: \.hex) { preset in
-                            PresetChip(
-                                preset: preset,
-                                isSelected: (selectedColor.toHex() ?? "").lowercased() == preset.hex.lowercased()
-                            ) {
-                                withAnimation(.spring(response: 0.3)) { selectedColor = Color(hex: preset.hex) }
+
+            paramDivider
+
+            // Hue Range
+            paramSection {
+                VStack(spacing: 10) {
+                    rowHeader("HUE RANGE", value: "\(Int(hueMin * 360))° – \(Int(hueMax * 360))°")
+                    HueRangeSlider(low: $hueMin, high: $hueMax)
+                    hintRow(left: hueName(hueMin), right: hueName(hueMax),
+                            leftColor: Color(hue: hueMin, saturation: 0.65, brightness: 0.65),
+                            rightColor: Color(hue: hueMax, saturation: 0.65, brightness: 0.65))
+                }
+            }
+
+            paramDivider
+
+            // Saturation
+            paramSection {
+                let midH = (hueMin + hueMax) / 2
+                VStack(spacing: 10) {
+                    rowHeader("SATURATION", value: "\(Int(satMin * 100))% – \(Int(satMax * 100))%")
+                    TwoThumbSlider(
+                        low: $satMin, high: $satMax,
+                        track: LinearGradient(
+                            colors: [Color(hue: midH, saturation: 0.06, brightness: 0.62),
+                                     Color(hue: midH, saturation: 1.0,  brightness: 0.78)],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    hintRow(left: "Muted", right: "Vivid")
+                }
+            }
+
+            paramDivider
+
+            // Brightness
+            paramSection {
+                VStack(spacing: 10) {
+                    rowHeader("BRIGHTNESS", value: "\(Int(lumMin * 100))% – \(Int(lumMax * 100))%")
+                    TwoThumbSlider(
+                        low: $lumMin, high: $lumMax,
+                        track: LinearGradient(
+                            colors: [Color(hex: "#111111"), Color(hex: "#FFFFFF")],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    hintRow(left: "Dark", right: "Light")
+                }
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                .shadow(color: Color("AppText").opacity(0.06), radius: 16, y: 6)
+                .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color("AppText").opacity(0.07), lineWidth: 1))
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .opacity(animateIn ? 1 : 0).offset(y: animateIn ? 0 : 14)
+        .animation(.spring(response: 0.55).delay(0.15), value: animateIn)
+    }
+
+    private func paramSection<C: View>(@ViewBuilder content: () -> C) -> some View {
+        content().padding(.horizontal, 18).padding(.vertical, 16)
+    }
+
+    private var paramDivider: some View {
+        Divider().padding(.horizontal, 18).opacity(0.65)
+    }
+
+    // Section row header — same typography as everywhere else in the app
+    private func rowHeader(_ label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 10, weight: .bold)).tracking(2.5)
+                .foregroundStyle(Color("AppText").opacity(0.28))
+            Spacer()
+            Text(value)
+                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .foregroundStyle(Color(hex: "#6C63FF"))
+        }
+    }
+
+    private func hintRow(left: String, right: String,
+                          leftColor: Color = Color("AppText").opacity(0.32),
+                          rightColor: Color = Color("AppText").opacity(0.32)) -> some View {
+        HStack {
+            Text(left).font(.system(size: 11, weight: .semibold)).foregroundStyle(leftColor)
+            Spacer()
+            Text(right).font(.system(size: 11, weight: .semibold)).foregroundStyle(rightColor)
+        }
+    }
+
+    private func countBtn(icon: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button {
+            action()
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        } label: {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(enabled ? Color(hex: "#6C63FF") : Color("AppText").opacity(0.2))
+                .frame(width: 40, height: 38)
+                .background(Color(hex: "#6C63FF").opacity(enabled ? 0.09 : 0))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        }.disabled(!enabled)
+    }
+
+    // MARK: ── Presets Row ────────────────────────────────────────
+
+    private var presetsRow: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("STYLE PRESET")
+                .font(.system(size: 10, weight: .bold)).tracking(2.5)
+                .foregroundStyle(Color("AppText").opacity(0.28))
+                .padding(.leading, 2)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(PaletteStylePreset.allCases) { p in
+                        Button {
+                            withAnimation(.spring(response: 0.38)) {
+                                preset = p
+                                satMin = p.sliderValues.sMin; satMax = p.sliderValues.sMax
+                                lumMin = p.sliderValues.lMin; lumMax = p.sliderValues.lMax
                             }
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        } label: {
+                            presetChip(p)
                         }
                     }
                 }
-            }.padding(.top, 4)
+                .padding(.vertical, 3)
+            }
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 28)
-                .fill(Color(uiColor: .secondarySystemGroupedBackground))
-                .overlay(RoundedRectangle(cornerRadius: 28).stroke(Color("AppText").opacity(0.08), lineWidth: 1))
-        )
+        .opacity(animateIn ? 1 : 0).offset(y: animateIn ? 0 : 10)
+        .animation(.spring(response: 0.55).delay(0.2), value: animateIn)
     }
 
-    // MARK: - Generate Button
+    private func presetChip(_ p: PaletteStylePreset) -> some View {
+        let sel = preset == p
+        return HStack(spacing: 7) {
+            // 3-color mini swatch
+            HStack(spacing: 1.5) {
+                ForEach(Array(p.chipColors.enumerated()), id: \.offset) { i, c in
+                    RoundedRectangle(cornerRadius: i == 0 ? 4 : (i == 2 ? 4 : 0))
+                        .fill(c).frame(width: 10, height: 20)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 5))
+            .overlay(RoundedRectangle(cornerRadius: 5).stroke(.white.opacity(0.2), lineWidth: 0.5))
+
+            Text(p.rawValue)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(sel ? Color("AppBackground") : Color("AppText").opacity(0.65))
+        }
+        .padding(.horizontal, 12).padding(.vertical, 9)
+        .background(
+            Capsule()
+                .fill(sel ? Color(hex: "#6C63FF") : Color(uiColor: .secondarySystemGroupedBackground))
+                .shadow(color: Color("AppText").opacity(sel ? 0 : 0.05), radius: 6, y: 2)
+                .overlay(Capsule().stroke(sel ? Color.clear : Color("AppText").opacity(0.09), lineWidth: 1))
+        )
+        .scaleEffect(sel ? 1.04 : 1.0)
+        .animation(.spring(response: 0.28), value: sel)
+    }
+
+    // MARK: ── Generate Button ────────────────────────────────────
 
     private var generateButton: some View {
-        Button(action: generateAllVariations) {
+        Button(action: generate) {
             HStack(spacing: 12) {
                 if isGenerating {
-                    ProgressView().progressViewStyle(.circular).tint(.white).scaleEffect(0.85)
+                    ProgressView().progressViewStyle(.circular).tint(.white).scaleEffect(0.9)
+                    Text("Creating \(colorCount) colors…")
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                } else if palette == nil {
+                    Image(systemName: "sparkles").font(.system(size: 18, weight: .semibold))
+                    Text("Generate Palette")
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
                 } else {
-                    Image(systemName: lockedSlots.isEmpty ? "sparkles" : "lock.fill")
+                    Image(systemName: lockedSlots.isEmpty ? "arrow.counterclockwise" : "lock.rotation")
                         .font(.system(size: 17, weight: .semibold))
+                    Text(lockedSlots.isEmpty ? "Regenerate" : "Regenerate · \(lockedSlots.count) locked")
+                        .font(.system(size: 17, weight: .bold, design: .rounded))
+                        .lineLimit(1).minimumScaleFactor(0.8)
                 }
-                Group {
-                    if isGenerating { Text("Crafting 3 unique palettes…") }
-                    else if lockedSlots.isEmpty { Text("Generate with AI") }
-                    else { Text("Regenerate · \(lockedSlots.count) color\(lockedSlots.count == 1 ? "" : "s") locked") }
-                }
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                .lineLimit(1).minimumScaleFactor(0.8)
             }
             .foregroundStyle(.white)
-            .frame(maxWidth: .infinity).frame(height: 58)
+            .frame(maxWidth: .infinity).frame(height: 60)
             .background(
                 Group {
                     if isGenerating {
-                        RoundedRectangle(cornerRadius: 18).fill(Color("AppText").opacity(0.1))
+                        RoundedRectangle(cornerRadius: 20).fill(Color("AppText").opacity(0.18))
                     } else {
-                        RoundedRectangle(cornerRadius: 18)
-                            .fill(LinearGradient(colors: [Color(hex: "#6C63FF"), Color(hex: "#A78BFA")],
-                                                 startPoint: .leading, endPoint: .trailing))
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(LinearGradient(colors: [Color(hex: "#6C63FF"), Color(hex: "#A78BFA")], startPoint: .leading, endPoint: .trailing))
+                            .shadow(color: Color(hex: "#6C63FF").opacity(0.35), radius: 14, y: 6)
                     }
                 }
             )
-            .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color("AppText").opacity(isGenerating ? 0.15 : 0), lineWidth: 1))
         }
         .disabled(isGenerating)
         .animation(.easeInOut(duration: 0.2), value: isGenerating)
+        .opacity(animateIn ? 1 : 0).offset(y: animateIn ? 0 : 10)
+        .animation(.spring(response: 0.55).delay(0.25), value: animateIn)
     }
 
-    // MARK: - Variations Section
+    // MARK: ── Result Section ─────────────────────────────────────
 
-    private var variationsSection: some View {
+    @ViewBuilder
+    private func resultSection(_ p: ColorPalette) -> some View {
         VStack(alignment: .leading, spacing: 20) {
-            let labels = ["Bold Contrast", "Unexpected Mix", "Tonal Depth"]
+
+            // Header — matches app section label style exactly
             HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("VARIATION \(activeVariation + 1) OF 3")
-                        .font(.system(size: 10, weight: .semibold)).tracking(2.5)
-                        .foregroundStyle(Color("AppText").opacity(0.4))
-                    Text(currentPalette?.title ?? (activeVariation < labels.count ? labels[activeVariation] : ""))
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color("AppText"))
-                        .animation(.easeInOut(duration: 0.2), value: activeVariation)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("YOUR PALETTE")
+                        .font(.system(size: 10, weight: .bold)).tracking(2.5)
+                        .foregroundStyle(Color("AppText").opacity(0.28))
+                    Text(p.title)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color("AppText")).kerning(-0.5)
+                        .animation(.easeInOut(duration: 0.2), value: p.title)
                 }
                 Spacer()
-                Button(action: generateAllVariations) {
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color("AppText").opacity(0.5))
-                        .frame(width: 36, height: 36)
-                        .background(Color("AppText").opacity(0.08))
-                        .clipShape(Circle())
-                }.disabled(isGenerating)
+                Text("\(p.colors.count) colors")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color("AppText").opacity(0.4))
+                    .padding(.horizontal, 10).padding(.vertical, 5)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color("AppText").opacity(0.07)))
             }
-            if variations.count == 3 {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(Array(zip(0..., labels)), id: \.0) { i, label in
-                            Button {
-                                withAnimation(.spring(response: 0.4)) { activeVariation = i }
-                                triggerCardAnimation()
-                            } label: {
-                                Text(label)
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(i == activeVariation ? Color("AppBackground") : Color("AppText").opacity(0.5))
-                                    .padding(.horizontal, 14).padding(.vertical, 7)
-                                    .background(Capsule().fill(i == activeVariation ? Color("AppText") : Color("AppText").opacity(0.08)))
-                            }
+
+            // Hero strip — same height + style as SavedPaletteDetailView's color header
+            HStack(spacing: 0) {
+                ForEach(Array(p.colors.enumerated()), id: \.element.hex) { i, c in
+                    ZStack(alignment: .topTrailing) {
+                        Color(hex: c.hex)
+                        if lockedSlots[i] != nil {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
+                                .padding(5).background(Circle().fill(Color(hex: "#6C63FF"))).padding(8)
                         }
                     }
                 }
             }
-            variationCarousel
-            if lockedSlots.isEmpty { lockHintBanner.transition(.opacity) }
-            if let palette = currentPalette { colorCardsList(palette: palette) }
-            saveButton
-        }
-    }
+            .frame(height: 110)
+            .clipShape(RoundedRectangle(cornerRadius: 22))
+            .overlay(RoundedRectangle(cornerRadius: 22).stroke(Color("AppText").opacity(0.08), lineWidth: 1))
+            .shadow(color: Color("AppText").opacity(0.1), radius: 14, y: 6)
 
-    // MARK: - Variation Carousel
-
-    private var variationCarousel: some View {
-        VStack(spacing: 12) {
-            ZStack {
-                ForEach(Array(variations.enumerated()), id: \.offset) { index, palette in
-                    stripView(palette: palette, index: index)
-                        .offset(x: xOffset(for: index))
-                        .animation(.spring(response: 0.42, dampingFraction: 0.8), value: activeVariation)
-                        .animation(.interactiveSpring(response: 0.28), value: dragOffset)
+            // Lock hint
+            if lockedSlots.isEmpty {
+                HStack(spacing: 8) {
+                    Image(systemName: "lock.open.fill").font(.system(size: 11, weight: .semibold)).foregroundStyle(Color(hex: "#6C63FF"))
+                    Text("Tap the lock on any color to keep it when regenerating")
+                        .font(.system(size: 12, weight: .medium)).foregroundStyle(Color("AppText").opacity(0.42))
+                    Spacer()
                 }
-            }
-            .frame(height: 72).clipped()
-            .gesture(DragGesture(minimumDistance: 10)
-                .onChanged { dragOffset = $0.translation.width }
-                .onEnded { value in
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        if value.translation.width < -55, activeVariation < variations.count - 1 {
-                            activeVariation += 1; UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        } else if value.translation.width > 55, activeVariation > 0 {
-                            activeVariation -= 1; UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        }
-                        dragOffset = 0
-                    }
-                    triggerCardAnimation()
-                })
-            HStack {
-                HStack(spacing: 6) {
-                    ForEach(0..<max(1, variations.count), id: \.self) { i in
-                        Capsule()
-                            .fill(i == activeVariation ? Color("AppText") : Color("AppText").opacity(0.22))
-                            .frame(width: i == activeVariation ? 22 : 6, height: 6)
-                            .animation(.spring(response: 0.32), value: activeVariation)
-                    }
-                }
-                Spacer()
-                if variations.count > 1 {
-                    Text("Swipe to compare")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color("AppText").opacity(0.35))
-                }
-            }
-        }
-    }
-
-    private func stripView(palette: ColorPalette, index: Int) -> some View {
-        let isActive = index == activeVariation
-        return HStack(spacing: 3) {
-            ForEach(Array(palette.colors.enumerated()), id: \.element.hex) { slotIdx, c in
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10).fill(Color(hex: c.hex))
-                    if lockedSlots[slotIdx] != nil {
-                        RoundedRectangle(cornerRadius: 10).strokeBorder(Color.white.opacity(0.9), lineWidth: 2)
-                        Image(systemName: "lock.fill").font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(.white).shadow(color: .black.opacity(0.5), radius: 2)
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity).frame(height: 72)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14)
-            .stroke(isActive ? Color("AppText").opacity(0.22) : Color("AppText").opacity(0.06), lineWidth: 1.5))
-        .scaleEffect(isActive ? 1.0 : 0.94)
-        .opacity(isActive ? 1.0 : 0.45)
-    }
-
-    private func xOffset(for index: Int) -> CGFloat {
-        CGFloat(index - activeVariation) * (UIScreen.main.bounds.width - 44) + dragOffset
-    }
-
-    // MARK: - Lock Hint
-
-    private var lockHintBanner: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "lock.open.fill").font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Color(hex: "#6C63FF"))
-            Text("Tap \(Image(systemName: "lock.open")) on any color to keep it when regenerating")
-                .font(.system(size: 12, weight: .medium)).foregroundStyle(Color("AppText").opacity(0.5))
-            Spacer()
-        }
-        .padding(.horizontal, 14).padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(Color(hex: "#6C63FF").opacity(0.08))
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: "#6C63FF").opacity(0.18), lineWidth: 1))
-        )
-    }
-
-    // MARK: - Color Cards List
-
-    private func colorCardsList(palette: ColorPalette) -> some View {
-        VStack(spacing: 10) {
-            ForEach(Array(palette.colors.enumerated()), id: \.element.hex) { index, color in
-                LockableColorCard(
-                    color: color, index: index,
-                    isLocked: lockedSlots[index] != nil,
-                    onToggleLock: { toggleLock(at: index, color: color) }
+                .padding(.horizontal, 13).padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(hex: "#6C63FF").opacity(0.07))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(hex: "#6C63FF").opacity(0.15), lineWidth: 1))
                 )
-                .opacity(animateCards ? 1 : 0)
-                .offset(y: animateCards ? 0 : 16)
-                .animation(.spring(response: 0.48, dampingFraction: 0.8).delay(Double(index) * 0.055), value: animateCards)
+                .transition(.opacity)
             }
+
+            // Color cards — matches SavedPaletteDetailView's DetailColorRow style exactly
+            VStack(spacing: 10) {
+                ForEach(Array(p.colors.enumerated()), id: \.element.hex) { i, c in
+                    ResultColorRow(
+                        color: c, isLocked: lockedSlots[i] != nil,
+                        onToggleLock: { toggleLock(i, c) }
+                    )
+                    .opacity(animateCards ? 1 : 0).offset(y: animateCards ? 0 : 16)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.82).delay(Double(i) * 0.055), value: animateCards)
+                }
+            }
+
+            // Save
+            Button(action: savePalette) {
+                HStack(spacing: 10) {
+                    Image(systemName: savedOK ? "checkmark.circle.fill" : "square.and.arrow.down").font(.system(size: 17, weight: .semibold))
+                    Text(savedOK ? "Saved to Collection!" : "Save Palette").font(.system(size: 17, weight: .bold, design: .rounded))
+                }
+                .foregroundStyle(savedOK ? Color(hex: "#34C759") : Color("AppBackground"))
+                .frame(maxWidth: .infinity).frame(height: 58)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(savedOK ? Color(hex: "#34C759").opacity(0.14) : Color("AppText"))
+                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(savedOK ? Color(hex: "#34C759").opacity(0.4) : Color.clear, lineWidth: 1.5))
+                )
+            }
+            .disabled(savedOK || isGenerating)
+            .animation(.spring(response: 0.4), value: savedOK)
         }
-        .onChange(of: activeVariation) { _ in triggerCardAnimation() }
     }
 
-    // MARK: - Save Button
+    // MARK: ── Logic ──────────────────────────────────────────────
 
-    private var saveButton: some View {
-        Button(action: savePalette) {
-            HStack(spacing: 10) {
-                Image(systemName: savedSuccessfully ? "checkmark.circle.fill" : "square.and.arrow.down")
-                    .font(.system(size: 17, weight: .semibold))
-                Text(savedSuccessfully ? "Saved!" : "Save This Palette")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-            }
-            .foregroundStyle(savedSuccessfully ? Color(hex: "#34C759") : Color("AppBackground"))
-            .frame(maxWidth: .infinity).frame(height: 58)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(savedSuccessfully ? Color(hex: "#34C759").opacity(0.15) : Color("AppText"))
-                    .overlay(RoundedRectangle(cornerRadius: 18)
-                        .stroke(savedSuccessfully ? Color(hex: "#34C759").opacity(0.4) : Color.clear, lineWidth: 1.5))
-            )
-        }
-        .disabled(currentPalette == nil || savedSuccessfully || isGenerating)
-        .animation(.spring(response: 0.4), value: savedSuccessfully)
-    }
-
-    // MARK: - Generation Logic
-
-    func generateAllVariations() {
+    func generate() {
         guard !isGenerating else { return }
-        isGenerating = true; animateCards = false; pulseRing = true; savedSuccessfully = false
-        let snapshot = lockedSlots
-        let baseHex = selectedColor.toHex() ?? "#6C63FF"
+        isGenerating = true; animateCards = false; savedOK = false
+        let snap   = lockedSlots
+        let params = (hMin: hueMin, hMax: hueMax, sMin: satMin, sMax: satMax, lMin: lumMin, lMax: lumMax)
+        let count  = colorCount; let style = preset
         Task {
-            async let r0 = generateOne(session: sessions[0], prompt: VariationPromptBuilder.boldContrast(baseHex: baseHex, locked: snapshot), locked: snapshot)
-            async let r1 = generateOne(session: sessions[1], prompt: VariationPromptBuilder.unexpectedMix(baseHex: baseHex, locked: snapshot), locked: snapshot)
-            async let r2 = generateOne(session: sessions[2], prompt: VariationPromptBuilder.tonalDepth(baseHex: baseHex, locked: snapshot), locked: snapshot)
-            let results = await [r0, r1, r2].compactMap { $0 }
+            let result = await doGenerate(count: count, style: style, params: params, locked: snap)
             await MainActor.run {
-                withAnimation(.spring(response: 0.5)) { variations = results; activeVariation = 0 }
-                isGenerating = false; pulseRing = false; triggerCardAnimation()
+                withAnimation(.spring(response: 0.5)) { palette = result }
+                isGenerating = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { withAnimation { animateCards = true } }
             }
         }
     }
 
-    private func generateOne(session: LanguageModelSession, prompt: String, locked: [Int: GeneratedColor]) async -> ColorPalette? {
+    private func doGenerate(count: Int, style: PaletteStylePreset,
+                             params: (hMin: Double, hMax: Double, sMin: Double, sMax: Double, lMin: Double, lMax: Double),
+                             locked: [Int: GeneratedColor]) async -> ColorPalette? {
         do {
-            let response = try await session.respond(to: prompt, generating: ColorPalette.self)
-            var palette = response.content
-            let diversified = ColorDiversityEnforcer.enforce(palette.colors, lockedSlots: locked, minimumDistance: 72)
-            var final = diversified
-            for (idx, lockedColor) in locked { if idx < final.count { final[idx] = lockedColor } }
-            palette = ColorPalette(title: palette.title, colors: final)
-            return palette
-        } catch { print("Generation error: \(error)"); return nil }
+            let response = try await session.respond(to: buildPrompt(count, style, params), generating: ColorPalette.self)
+            var colors = response.content.colors
+
+            // 1. Enforce HSL constraints (mathematical guarantee)
+            colors = colors.map { c in
+                GeneratedColor(name: c.name,
+                               hex: HSLEngine.snapToRange(hex: c.hex,
+                                                          hMin: params.hMin, hMax: params.hMax,
+                                                          sMin: params.sMin, sMax: params.sMax,
+                                                          lMin: params.lMin, lMax: params.lMax))
+            }
+            // 2. Ensure visual diversity
+            colors = HSLEngine.enforceDiversity(colors, minDist: 55)
+            // 3. Restore locked slots
+            for (idx, lc) in locked { if idx < colors.count { colors[idx] = lc } }
+            // 4. Exact count
+            while colors.count < count { colors.append(colors.last ?? GeneratedColor(name: "Color", hex: "#808080")) }
+            return ColorPalette(title: response.content.title, colors: Array(colors.prefix(count)))
+        } catch { print("Gen error: \(error)"); return nil }
     }
 
-    private func toggleLock(at index: Int, color: GeneratedColor) {
+    private func buildPrompt(_ count: Int, _ style: PaletteStylePreset,
+                              _ p: (hMin: Double, hMax: Double, sMin: Double, sMax: Double, lMin: Double, lMax: Double)) -> String {
+        let fullHue = abs(p.hMax - p.hMin) > 0.95
+        let hueDesc = fullHue ? "any hue — full spectrum" : "\(hueName(p.hMin))–\(hueName(p.hMax)) (\(Int(p.hMin*360))°–\(Int(p.hMax*360))°)"
+        return """
+        Create a beautiful \(count)-color palette.
+        Hue: \(hueDesc)
+        Saturation: \(Int(p.sMin*100))%–\(Int(p.sMax*100))%
+        Lightness: \(Int(p.lMin*100))%–\(Int(p.lMax*100))%
+        Style: \(style.promptDescription)
+        Give the palette a poetic 3–5 word title.
+        Return EXACTLY \(count) colors with evocative 2–3 word names.
+        """
+    }
+
+    private func toggleLock(_ i: Int, _ c: GeneratedColor) {
         withAnimation(.spring(response: 0.3)) {
-            if lockedSlots[index] != nil { lockedSlots.removeValue(forKey: index) }
-            else { lockedSlots[index] = color }
+            if lockedSlots[i] != nil { lockedSlots.removeValue(forKey: i) } else { lockedSlots[i] = c }
         }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 
-    func savePalette() {
-        guard let p = currentPalette else { return }
+    private func savePalette() {
+        guard let p = palette else { return }
         let saved = p.colors.map { SavedColor(name: $0.name, hex: $0.hex) }
         modelContext.insert(SavedPalette(title: p.title, colors: saved))
         UINotificationFeedbackGenerator().notificationOccurred(.success)
-        withAnimation(.spring(response: 0.4)) { savedSuccessfully = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { dismiss() }
+        withAnimation(.spring(response: 0.4)) { savedOK = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) { dismiss() }
     }
 
-    private func triggerCardAnimation() {
-        animateCards = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
-            withAnimation { animateCards = true }
+    private func hueName(_ n: Double) -> String {
+        switch Int(n * 360) % 360 {
+        case 0..<15, 345...360: return "Red"
+        case 15..<38:   return "Orange"
+        case 38..<55:   return "Amber"
+        case 55..<75:   return "Yellow"
+        case 75..<150:  return "Green"
+        case 150..<185: return "Teal"
+        case 185..<220: return "Blue"
+        case 220..<260: return "Indigo"
+        case 260..<290: return "Violet"
+        case 290..<325: return "Magenta"
+        case 325..<345: return "Pink"
+        default:        return "Color"
         }
     }
 }
 
-
 // ═════════════════════════════════════════════════════════════
-// MARK: - LOCKABLE COLOR CARD  (iOS 26+)
+// MARK: - RESULT COLOR ROW
+// Matches SavedPaletteDetailView's DetailColorRow exactly
 // ═════════════════════════════════════════════════════════════
 
 @available(iOS 26.0, *)
-struct LockableColorCard: View {
+struct ResultColorRow: View {
     let color: GeneratedColor
-    let index: Int
     let isLocked: Bool
     let onToggleLock: () -> Void
     @State private var copied = false
 
+    private var rgb: (r: Int, g: Int, b: Int) { HSLEngine.hexToRGB(color.hex) }
+    private var hsl: (h: Int, s: Int, l: Int) {
+        let (h, s, l) = HSLEngine.hexToHSL(color.hex)
+        return (Int(h), Int(s), Int(l))
+    }
+
     var body: some View {
         HStack(spacing: 14) {
-            ZStack(alignment: .bottomTrailing) {
-                RoundedRectangle(cornerRadius: 14).fill(Color(hex: color.hex))
-                    .frame(width: 52, height: 52)
-                    .overlay(RoundedRectangle(cornerRadius: 14)
-                        .stroke(isLocked ? Color.white.opacity(0.85) : Color.white.opacity(0.1),
-                                lineWidth: isLocked ? 2.5 : 1))
-                if isLocked {
-                    Circle().fill(Color(hex: "#6C63FF")).frame(width: 18, height: 18)
-                        .overlay(Image(systemName: "lock.fill").font(.system(size: 8, weight: .bold)).foregroundStyle(.white))
-                        .offset(x: 5, y: 5).transition(.scale.combined(with: .opacity))
-                }
-            }.animation(.spring(response: 0.28), value: isLocked)
+            // Swatch — same proportions as DetailColorRow
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color(hex: color.hex))
+                .frame(width: 54, height: 54)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(isLocked ? Color(hex: "#6C63FF").opacity(0.55) : Color("AppText").opacity(0.08),
+                                lineWidth: isLocked ? 2.5 : 1)
+                )
+                .shadow(color: Color(hex: color.hex).opacity(0.22), radius: 8, y: 3)
 
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 7) {
-                    Text(color.name).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color("AppText")).lineLimit(1)
-                    if isLocked {
-                        Text("LOCKED").font(.system(size: 8, weight: .black)).tracking(0.8)
-                            .foregroundStyle(Color(hex: "#A78BFA"))
-                            .padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(Capsule().fill(Color(hex: "#6C63FF").opacity(0.22)))
-                            .transition(.scale.combined(with: .opacity))
-                    }
+            VStack(alignment: .leading, spacing: 5) {
+                Text(color.name)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color("AppText")).lineLimit(1)
+                // HEX / RGB / HSL pills — same style as the app's info chips
+                HStack(spacing: 6) {
+                    infoPill("HEX", color.hex.uppercased())
+                    infoPill("RGB", "\(rgb.r) \(rgb.g) \(rgb.b)")
+                    infoPill("HSL", "\(hsl.h)° \(hsl.s)% \(hsl.l)%")
                 }
-                Text(color.hex.uppercased()).font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color("AppText").opacity(0.45))
             }
-            Spacer()
+
+            Spacer(minLength: 0)
+
+            // Copy
             Button {
                 UIPasteboard.general.string = color.hex
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 withAnimation(.spring(response: 0.3)) { copied = true }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { withAnimation { copied = false } }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) { withAnimation { copied = false } }
             } label: {
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(copied ? Color(hex: "#34C759") : Color("AppText").opacity(0.4))
-                    .frame(width: 34, height: 34)
-                    .background(RoundedRectangle(cornerRadius: 10)
-                        .fill(copied ? Color(hex: "#34C759").opacity(0.13) : Color("AppText").opacity(0.07)))
+                    .foregroundStyle(copied ? Color(hex: "#34C759") : Color("AppText").opacity(0.38))
+                    .frame(width: 36, height: 36)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(copied ? Color(hex: "#34C759").opacity(0.1) : Color("AppText").opacity(0.07)))
             }
+
+            // Lock
             Button(action: onToggleLock) {
                 Image(systemName: isLocked ? "lock.fill" : "lock.open")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(isLocked ? Color(hex: "#A78BFA") : Color("AppText").opacity(0.32))
-                    .frame(width: 34, height: 34)
-                    .background(RoundedRectangle(cornerRadius: 10)
-                        .fill(isLocked ? Color(hex: "#6C63FF").opacity(0.2) : Color("AppText").opacity(0.07))
-                        .overlay(RoundedRectangle(cornerRadius: 10)
-                            .stroke(isLocked ? Color(hex: "#6C63FF").opacity(0.45) : Color.clear, lineWidth: 1)))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(isLocked ? Color(hex: "#6C63FF") : Color("AppText").opacity(0.35))
+                    .frame(width: 36, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(isLocked ? Color(hex: "#6C63FF").opacity(0.14) : Color("AppText").opacity(0.07))
+                            .overlay(RoundedRectangle(cornerRadius: 10).stroke(isLocked ? Color(hex: "#6C63FF").opacity(0.38) : Color.clear, lineWidth: 1))
+                    )
             }
-            .scaleEffect(isLocked ? 1.08 : 1.0)
+            .scaleEffect(isLocked ? 1.07 : 1.0)
             .animation(.spring(response: 0.25), value: isLocked)
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 18)
-                .fill(isLocked ? Color(hex: "#6C63FF").opacity(0.07) : Color(uiColor: .secondarySystemGroupedBackground))
-                .overlay(RoundedRectangle(cornerRadius: 18)
-                    .stroke(isLocked ? Color(hex: "#6C63FF").opacity(0.28) : Color("AppText").opacity(0.07), lineWidth: 1))
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                .shadow(color: Color("AppText").opacity(isLocked ? 0.07 : 0.04), radius: isLocked ? 12 : 7, y: 3)
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(isLocked ? Color(hex: "#6C63FF").opacity(0.2) : Color("AppText").opacity(0.06), lineWidth: 1))
         )
         .animation(.spring(response: 0.3), value: isLocked)
     }
-}
 
-
-// ═════════════════════════════════════════════════════════════
-// MARK: - VARIATION PROMPT BUILDER  (iOS 26+)
-// ═════════════════════════════════════════════════════════════
-
-@available(iOS 26.0, *)
-enum VariationPromptBuilder {
-    static func boldContrast(baseHex: String, locked: [Int: GeneratedColor]) -> String {
-        """
-        CREATIVE BRIEF: HIGH-CONTRAST EDITORIAL. Base color: \(baseHex).
-        Slot 1: Near-black anchor (brightness 5–18%). Slot 2: Loud saturated hero (sat 85–100%, bri 55–75%).
-        Slot 3: Sharp contrast accent, hue >90° different from Slot 2. Slot 4: Near-white neutral (bri 88–98%, sat <18%).
-        Slot 5: \(baseHex) — include exactly. Names: evocative, specific (e.g. "Void Ink", "Ghost Linen").
-        \(lockedNote(locked))
-        """
-    }
-    static func unexpectedMix(baseHex: String, locked: [Int: GeneratedColor]) -> String {
-        """
-        CREATIVE BRIEF: RULE-BREAKING COMBINATION. Base color: \(baseHex).
-        Slot 1: Warm (hue 0°–55°). Slot 2: Cool shock (hue 195°–255°). Slot 3: Desaturated earthy (sat 5–22%).
-        Slot 4: One electric neon pop (sat>88%, bri>78%). Slot 5: \(baseHex) — include exactly.
-        No two of Slots 1–4 within 50° hue of each other. Name like perfume or sneaker colorway.
-        \(lockedNote(locked))
-        """
-    }
-    static func tonalDepth(baseHex: String, locked: [Int: GeneratedColor]) -> String {
-        """
-        CREATIVE BRIEF: LUXURIOUS TONAL. Base color: \(baseHex).
-        Slot 1: Darkest expression of \(baseHex) hue (bri 8–20%). Slot 2: \(baseHex) exactly.
-        Slot 3: Lighter same hue (bri 78–92%, sat 18–40%). Slot 4: Complementary accent (150°–200° hue jump, sat 65–90%).
-        Slot 5: Warm or cool mid-gray (sat 4–12%, bri 52–74%). Slots 1–3 share dominant hue within 25°.
-        \(lockedNote(locked))
-        """
-    }
-    private static func lockedNote(_ locked: [Int: GeneratedColor]) -> String {
-        guard !locked.isEmpty else { return "" }
-        let lines = locked.sorted { $0.key < $1.key }.map {
-            "Color \($0.key + 1) is LOCKED — use exactly \($0.value.hex) named '\($0.value.name)'."
-        }.joined(separator: "\n")
-        return "LOCKED COLORS (do not change):\n\(lines)"
+    private func infoPill(_ label: String, _ value: String) -> some View {
+        HStack(spacing: 3) {
+            Text(label).font(.system(size: 8, weight: .black)).foregroundStyle(Color("AppText").opacity(0.28))
+            Text(value).font(.system(size: 9, weight: .semibold, design: .monospaced)).foregroundStyle(Color("AppText").opacity(0.58)).lineLimit(1)
+        }
+        .padding(.horizontal, 5).padding(.vertical, 3)
+        .background(RoundedRectangle(cornerRadius: 5).fill(Color("AppText").opacity(0.05)))
     }
 }
 
+// ═════════════════════════════════════════════════════════════
+// MARK: - HUE RANGE SLIDER
+// ═════════════════════════════════════════════════════════════
+
+struct HueRangeSlider: View {
+    @Binding var low: Double
+    @Binding var high: Double
+    @State private var drag: Which = .none
+    enum Which { case low, high, none }
+    private let D: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let W = geo.size.width
+            ZStack(alignment: .leading) {
+                LinearGradient(
+                    colors: stride(from: 0.0, through: 1.0, by: 1.0/12)
+                        .map { Color(hue: $0, saturation: 1, brightness: 0.88) },
+                    startPoint: .leading, endPoint: .trailing
+                )
+                .frame(height: 12).clipShape(Capsule()).frame(maxHeight: .infinity)
+                .shadow(color: .black.opacity(0.07), radius: 2, y: 1)
+
+                // Dimmed unselected overlay
+                HStack(spacing: 0) {
+                    Color("AppBackground").opacity(0.6).frame(width: max(0, low * W))
+                    Color.clear.frame(width: max(0, (high - low) * W))
+                    Color("AppBackground").opacity(0.6)
+                }
+                .frame(height: 12).clipShape(Capsule()).frame(maxHeight: .infinity)
+
+                hueThumb(low).position(x: low * W, y: geo.size.height / 2)
+                hueThumb(high).position(x: high * W, y: geo.size.height / 2)
+            }
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                .onChanged { v in
+                    let x = max(0, min(1, v.location.x / W))
+                    if drag == .none { drag = abs(v.location.x - low*W) <= abs(v.location.x - high*W) ? .low : .high }
+                    if drag == .low  { low  = max(0,        min(high - 0.01, x)) }
+                    if drag == .high { high = max(low+0.01, min(1, x)) }
+                }
+                .onEnded { _ in drag = .none; UIImpactFeedbackGenerator(style: .light).impactOccurred() })
+        }
+        .frame(height: D + 8)
+    }
+
+    private func hueThumb(_ hue: Double) -> some View {
+        ZStack {
+            Circle().fill(.white).frame(width: D, height: D).shadow(color: .black.opacity(0.18), radius: 5, y: 2)
+            Circle().fill(Color(hue: hue, saturation: 0.88, brightness: 0.9)).frame(width: D - 10, height: D - 10)
+            Circle().strokeBorder(.white, lineWidth: 2.5).frame(width: D, height: D)
+        }
+    }
+}
 
 // ═════════════════════════════════════════════════════════════
-// MARK: - COLOR DIVERSITY ENFORCER  (iOS 26+)
+// MARK: - TWO-THUMB RANGE SLIDER
 // ═════════════════════════════════════════════════════════════
 
-@available(iOS 26.0, *)
-enum ColorDiversityEnforcer {
-    static func enforce(_ colors: [GeneratedColor], lockedSlots: [Int: GeneratedColor], minimumDistance: Double) -> [GeneratedColor] {
-        var result = colors
-        for _ in 0..<8 {
-            var replaced = false
-            for i in 0..<result.count {
-                if lockedSlots[i] != nil { continue }
-                for j in (i + 1)..<result.count {
-                    if lockedSlots[j] != nil { continue }
-                    if rgbDist(result[i].hex, result[j].hex) < minimumDistance {
-                        let replacement = deriveContrasting(against: result.map(\.hex), avoidIndex: j,
-                                                            locked: Set(lockedSlots.values.map(\.hex)))
-                        result[j] = GeneratedColor(name: result[j].name, hex: replacement)
-                        replaced = true
+struct TwoThumbSlider: View {
+    @Binding var low: Double
+    @Binding var high: Double
+    let track: LinearGradient
+    @State private var drag: Which = .none
+    enum Which { case low, high, none }
+    private let D: CGFloat = 28
+
+    var body: some View {
+        GeometryReader { geo in
+            let W = geo.size.width
+            ZStack(alignment: .leading) {
+                track.frame(height: 12).clipShape(Capsule()).frame(maxHeight: .infinity)
+                    .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
+                HStack(spacing: 0) {
+                    Color(uiColor: .secondarySystemGroupedBackground).opacity(0.8).frame(width: max(0, low * W))
+                    Color.clear.frame(width: max(0, (high - low) * W))
+                    Color(uiColor: .secondarySystemGroupedBackground).opacity(0.8)
+                }
+                .frame(height: 12).clipShape(Capsule()).frame(maxHeight: .infinity)
+                thumb(drag == .low).position(x: low * W, y: geo.size.height / 2)
+                thumb(drag == .high).position(x: high * W, y: geo.size.height / 2)
+            }
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                .onChanged { v in
+                    let x = max(0, min(1, v.location.x / W))
+                    if drag == .none { drag = abs(v.location.x - low*W) <= abs(v.location.x - high*W) ? .low : .high }
+                    if drag == .low  { low  = max(0,        min(high - 0.02, x)) }
+                    if drag == .high { high = max(low+0.02, min(1, x)) }
+                }
+                .onEnded { _ in drag = .none; UIImpactFeedbackGenerator(style: .light).impactOccurred() })
+        }
+        .frame(height: D + 8)
+    }
+
+    private func thumb(_ active: Bool) -> some View {
+        ZStack {
+            Circle().fill(.white).frame(width: D, height: D)
+                .shadow(color: .black.opacity(active ? 0.2 : 0.1), radius: active ? 7 : 4, y: 2)
+            Circle().strokeBorder(Color(hex: "#6C63FF"), lineWidth: active ? 3 : 2).frame(width: D, height: D)
+        }
+        .scaleEffect(active ? 1.12 : 1.0).animation(.spring(response: 0.2), value: active)
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: - HSL ENGINE
+// ═════════════════════════════════════════════════════════════
+
+enum HSLEngine {
+    static func hexToRGB(_ hex: String) -> (r: Int, g: Int, b: Int) {
+        let h = hex.replacingOccurrences(of: "#", with: "")
+        var v: UInt64 = 0; Scanner(string: h).scanHexInt64(&v)
+        return (Int((v>>16)&0xFF), Int((v>>8)&0xFF), Int(v&0xFF))
+    }
+
+    static func hexToHSL(_ hex: String) -> (h: Double, s: Double, l: Double) {
+        let c = hexToRGB(hex)
+        let r = Double(c.r)/255, g = Double(c.g)/255, b = Double(c.b)/255
+        let mx = max(r,g,b), mn = min(r,g,b), l = (mx+mn)/2
+        var h = 0.0, s = 0.0
+        if mx != mn {
+            let d = mx-mn; s = l > 0.5 ? d/(2-mx-mn) : d/(mx+mn)
+            if      mx==r { h = (g-b)/d + (g<b ? 6:0) }
+            else if mx==g { h = (b-r)/d + 2 }
+            else           { h = (r-g)/d + 4 }
+            h /= 6
+        }
+        return (h*360, s*100, l*100)
+    }
+
+    static func hslToHex(h: Double, s: Double, l: Double) -> String {
+        let H = (h/360).truncatingRemainder(dividingBy: 1)
+        let S = max(0, min(1, s/100)), L = max(0, min(1, l/100))
+        if S == 0 { let v = Int(L*255); return String(format:"#%02X%02X%02X",v,v,v) }
+        func hue2rgb(_ p: Double, _ q: Double, _ t: Double) -> Double {
+            var t = t; if t<0{t+=1}; if t>1{t-=1}
+            if t<1/6{return p+(q-p)*6*t}; if t<0.5{return q}
+            if t<2/3{return p+(q-p)*(2/3-t)*6}; return p
+        }
+        let q = L<0.5 ? L*(1+S) : L+S-L*S, p = 2*L-q
+        return String(format:"#%02X%02X%02X",
+                      Int(hue2rgb(p,q,H+1/3)*255), Int(hue2rgb(p,q,H)*255), Int(hue2rgb(p,q,H-1/3)*255))
+    }
+
+    static func snapToRange(hex: String, hMin: Double, hMax: Double,
+                             sMin: Double, sMax: Double, lMin: Double, lMax: Double) -> String {
+        var (h, s, l) = hexToHSL(hex)
+        s = max(sMin*100, min(sMax*100, s)); l = max(lMin*100, min(lMax*100, l))
+        if abs(hMax - hMin) <= 0.98 {
+            let lo = hMin*360, hi = hMax*360
+            if hi >= lo { if h < lo || h > hi { h = circ(h, lo) < circ(h, hi) ? lo : hi } }
+            else { if h > hi && h < lo { h = circ(h, lo) < circ(h, hi) ? lo : hi } }
+        }
+        return hslToHex(h: h, s: s, l: l)
+    }
+
+    @available(iOS 26.0, *)
+    static func enforceDiversity(_ colors: [GeneratedColor], minDist: Double) -> [GeneratedColor] {
+        var r = colors
+        for _ in 0..<6 {
+            var changed = false
+            for i in 0..<r.count {
+                for j in (i+1)..<r.count {
+                    if dist(r[i].hex, r[j].hex) < minDist {
+                        var (h, s, l) = hexToHSL(r[j].hex)
+                        l = l > 50 ? max(5, l-18) : min(95, l+18)
+                        if #available(iOS 26.0, *) {
+                            r[j] = GeneratedColor(name: r[j].name, hex: hslToHex(h: h, s: s, l: l))
+                        } else {
+                            // Fallback on earlier versions
+                        }
+                        changed = true
                     }
                 }
             }
-            if !replaced { break }
+            if !changed { break }
         }
-        return result
+        return r
     }
-    private static func deriveContrasting(against hexes: [String], avoidIndex: Int, locked: Set<String>) -> String {
-        let steps: [Double] = stride(from: 0, to: 360, by: 15).map { $0 }
-        var best = "#808080"; var bestDist = 0.0
-        for h in steps {
-            for s in [0.9, 0.65, 0.3] as [Double] {
-                for b in [0.85, 0.35] as [Double] {
-                    let c = hsbHex(h, s, b)
-                    if locked.contains(c) { continue }
-                    let existing = hexes.enumerated().filter { $0.offset != avoidIndex }.map(\.element)
-                    let d = existing.map { rgbDist(c, $0) }.min() ?? 0
-                    if d > bestDist { bestDist = d; best = c }
-                }
-            }
-        }
-        return best
-    }
-    private static func rgbDist(_ a: String, _ b: String) -> Double {
-        let ra = hex2rgb(a), rb = hex2rgb(b)
-        let dr = Double(ra.r - rb.r), dg = Double(ra.g - rb.g), db = Double(ra.b - rb.b)
+
+    private static func circ(_ a: Double, _ b: Double) -> Double { let d = abs(a-b); return min(d, 360-d) }
+    static func dist(_ a: String, _ b: String) -> Double {
+        let ra = hexToRGB(a), rb = hexToRGB(b)
+        let dr = Double(ra.r-rb.r), dg = Double(ra.g-rb.g), db = Double(ra.b-rb.b)
         return sqrt(0.299*dr*dr + 0.587*dg*dg + 0.114*db*db)
-    }
-    private static func hex2rgb(_ h: String) -> (r: Int, g: Int, b: Int) {
-        let s = h.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "#", with: "")
-        var v: UInt64 = 0; Scanner(string: s).scanHexInt64(&v)
-        return (Int((v>>16)&0xFF), Int((v>>8)&0xFF), Int(v&0xFF))
-    }
-    private static func hsbHex(_ h: Double, _ s: Double, _ b: Double) -> String {
-        let c=b*s, x=c*(1-abs((h/60).truncatingRemainder(dividingBy:2)-1)), m=b-c
-        var t:(Double,Double,Double)
-        switch h { case 0..<60:t=(c,x,0); case 60..<120:t=(x,c,0); case 120..<180:t=(0,c,x)
-            case 180..<240:t=(0,x,c); case 240..<300:t=(x,0,c); default:t=(c,0,x) }
-        return String(format:"#%02X%02X%02X",Int((t.0+m)*255),Int((t.1+m)*255),Int((t.2+m)*255))
     }
 }
 
-
 // ═════════════════════════════════════════════════════════════
-// MARK: - PRESET CHIP & COLOR PRESET  (all iOS versions)
+// MARK: - PRESET CHIP  (kept for other views)
 // ═════════════════════════════════════════════════════════════
 
 struct PresetChip: View {
-    let preset: ColorPreset
-    let isSelected: Bool
-    let action: () -> Void
+    let preset: ColorPreset; let isSelected: Bool; let action: () -> Void
     var body: some View {
         Button(action: action) {
             HStack(spacing: 7) {
@@ -934,8 +963,7 @@ struct PresetChip: View {
             .padding(.horizontal, 12).padding(.vertical, 7)
             .background(Capsule()
                 .fill(isSelected ? Color("AppText").opacity(0.15) : Color("AppText").opacity(0.06))
-                .overlay(Capsule().stroke(
-                    isSelected ? Color("AppText").opacity(0.3) : Color("AppText").opacity(0.08), lineWidth: 1)))
+                .overlay(Capsule().stroke(isSelected ? Color("AppText").opacity(0.3) : Color("AppText").opacity(0.08), lineWidth: 1)))
         }
     }
 }
@@ -949,22 +977,3 @@ struct ColorPreset {
         .init(name:"Slate",hex:"#64748B"),  .init(name:"Mint",hex:"#2DD4BF"),
     ]
 }
-
-
-// ─────────────────────────────────────────────────────────────
-// MARK: - MODELS.SWIFT — CHANGES NEEDED
-// ─────────────────────────────────────────────────────────────
-// In your Models.swift file, add @available(iOS 26.0, *) to
-// the two @Generable structs:
-//
-//   @available(iOS 26.0, *)
-//   @Generable(description: "A single color in a palette...")
-//   struct GeneratedColor: Codable { ... }
-//
-//   @available(iOS 26.0, *)
-//   @Generable(description: "A color palette inspired by...")
-//   struct ColorPalette: Codable { ... }
-//
-// The SwiftData models (SavedPalette, SavedColor) do NOT need
-// @available — they work on all iOS versions.
-// ─────────────────────────────────────────────────────────────

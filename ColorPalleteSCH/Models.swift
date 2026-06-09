@@ -12,7 +12,7 @@ import FoundationModels
 
 @available(iOS 26.0, *)
 @Generable(description: "A single color in a palette with a name and hex code")
-struct GeneratedColor: Codable { // Ensure Codable is here
+struct GeneratedColor: Codable, Equatable  { // Ensure Codable is here
     @Guide(description: "A descriptive name for the color, e.g. 'Ocean Blue'")
     var name: String
 
@@ -21,7 +21,7 @@ struct GeneratedColor: Codable { // Ensure Codable is here
 }
 @available(iOS 26.0, *)
 @Generable(description: "A color palette inspired by a given base color")
-struct ColorPalette: Codable {
+struct ColorPalette: Codable, Equatable { // <-- This clears the error! {
     @Guide(description: "A short, evocative title for the palette")
     var title: String
 

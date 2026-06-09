@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import WidgetKit
+import UniformTypeIdentifiers // 👈 NEW: Required for drag & drop type identifiers
 
 // MARK: - Saved Palette Detail View
 
@@ -12,13 +13,16 @@ struct SavedPaletteDetailView: View {
     @State private var isAddingColor = false
     @State private var colorToExport: SavedColor?
     @State private var colorToEdit: SavedColor?
-    @State private var colorToDetail: SavedColor? // 👈 NEW: Tracks color for ColorDetailView
+    @State private var colorToDetail: SavedColor?
     @State private var showPaletteExport = false
     @State private var copiedHex: String? = nil
     @State private var animateIn = false
     
     // Tracks if the widget was successfully set to show the checkmark
     @State private var isWidgetSet = false
+    
+    // 👈 NEW: Tracks which color is currently being dragged by the user
+    @State private var draggedColor: SavedColor?
 
     var body: some View {
         ZStack {
@@ -29,7 +33,8 @@ struct SavedPaletteDetailView: View {
                     
                     // 1. Full Width Edge-to-Edge Color Header
                     HStack(spacing: 0) {
-                        ForEach(palette.colors) { color in
+                        // 👈 Added id: \.self so SwiftUI uniquely tracks them and animates the swap smoothly!
+                        ForEach(palette.colors, id: \.self) { color in
                             Color(hex: color.hex)
                         }
                     }
@@ -104,15 +109,19 @@ struct SavedPaletteDetailView: View {
                         
                         // 3. Feature-Rich Color List
                         VStack(spacing: 12) {
-                            ForEach(Array(palette.colors.enumerated()), id: \.element.id) { index, color in
+                            // 👈 Changed to iterate over colors natively to maintain strict identity during drags
+                            ForEach(palette.colors) { color in
+                                // Grab the index for the initial loading animation
+                                let index = palette.colors.firstIndex(of: color) ?? 0
+                                
                                 DetailColorRow(
                                     color: color,
                                     copiedHex: $copiedHex,
-                                    onDetail: { colorToDetail = color }, // 👈 NEW: Pass action to open detail view
+                                    onDetail: { colorToDetail = color },
                                     onEdit: { colorToEdit = color },
                                     onExport: { colorToExport = color },
                                     onDelete: {
-                                        deleteColor(color) // Uses the instant-delete fix
+                                        deleteColor(color)
                                     }
                                 )
                                 .opacity(animateIn ? 1 : 0)
@@ -122,32 +131,38 @@ struct SavedPaletteDetailView: View {
                                         .delay(0.18 + Double(index) * 0.06),
                                     value: animateIn
                                 )
-                            }
-                            
-                            // 4. Dashed "Add Color" Button
-                            Button {
-                                isAddingColor = true
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            } label: {
-                                HStack {
-                                    Image(systemName: "plus")
-                                    Text("Add a color")
+                                // 👈 NEW: Long-press Drag and Drop Handlers
+                                .onDrag {
+                                    self.draggedColor = color
+                                    return NSItemProvider(object: color.hex as NSString)
                                 }
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                .foregroundColor(.gray)
-                                .frame(maxWidth: .infinity, minHeight: 60)
-                                .background(Color("AppText").opacity(0.05)) // Adaptive
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [6]))
-                                )
+                                .onDrop(of: [.plainText], delegate: PaletteDropDelegate(item: color, items: $palette.colors, draggedItem: $draggedColor))
                             }
-                            .buttonStyle(.plain)
-                            .padding(.top, 8)
-                            .opacity(animateIn ? 1 : 0)
-                            .animation(.spring(response: 0.5).delay(0.38), value: animateIn)
                         }
+                        
+                        // 4. Dashed "Add Color" Button
+                        Button {
+                            isAddingColor = true
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text("Add a color")
+                            }
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity, minHeight: 60)
+                            .background(Color("AppText").opacity(0.05)) // Adaptive
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.gray.opacity(0.3), style: StrokeStyle(lineWidth: 1.5, dash: [6]))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.top, 8)
+                        .opacity(animateIn ? 1 : 0)
+                        .animation(.spring(response: 0.5).delay(0.38), value: animateIn)
                     }
                     .padding(24)
                     
@@ -182,7 +197,7 @@ struct SavedPaletteDetailView: View {
             AddColorView(palette: palette)
         }
         .sheet(item: $colorToEdit) { color in
-            EditColorSheet(color: color)
+            EditColorSheet(color: color, palette: palette)
         }
         .sheet(item: $colorToExport) { color in
             ExportColorPreviewView(color: color)
@@ -190,7 +205,6 @@ struct SavedPaletteDetailView: View {
         .sheet(isPresented: $showPaletteExport) {
             ExportPalettePreviewView(palette: palette)
         }
-        // 👈 NEW: Present the Color Detail View when a color is tapped
         .sheet(item: $colorToDetail) { color in
             ColorDetailView(color: color)
         }
@@ -253,7 +267,7 @@ struct SavedPaletteDetailView: View {
 struct DetailColorRow: View {
     let color: SavedColor
     @Binding var copiedHex: String?
-    let onDetail: () -> Void // 👈 NEW: Action for when the swatch is tapped
+    let onDetail: () -> Void
     let onEdit: () -> Void
     let onExport: () -> Void
     let onDelete: () -> Void
@@ -270,7 +284,7 @@ struct DetailColorRow: View {
                     RoundedRectangle(cornerRadius: 14)
                         .stroke(Color("AppText").opacity(0.08), lineWidth: 1)
                 )
-                .onTapGesture(perform: onDetail) // 👈 NEW: Tap to open detail
+                .onTapGesture(perform: onDetail)
 
             // Name + hex
             VStack(alignment: .leading, spacing: 4) {
@@ -282,32 +296,9 @@ struct DetailColorRow: View {
                     .foregroundStyle(Color("AppText").opacity(0.38)) // Adaptive
             }
             .contentShape(Rectangle()) // Makes the whole text area tappable
-            .onTapGesture(perform: onDetail) // 👈 NEW: Tap to open detail
+            .onTapGesture(perform: onDetail)
 
             Spacer()
-
-            // Copy Button
-           /* Button {
-                UIPasteboard.general.string = color.hex
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                withAnimation(.spring(response: 0.3)) { copiedHex = color.hex }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-                    withAnimation { if copiedHex == color.hex { copiedHex = nil } }
-                }
-            } label: {
-                Image(systemName: isCopied ? "checkmark" : "doc.on.doc")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(
-                        isCopied ? Color(hex: "#34C759") : Color("AppText").opacity(0.38)
-                    )
-                    .frame(width: 36, height: 36)
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(isCopied
-                                  ? Color(hex: "#34C759").opacity(0.1)
-                                  : Color("AppText").opacity(0.07))
-                    )
-            }*/
 
             // Edit Button
             Button(action: onEdit) {
@@ -356,6 +347,42 @@ struct DetailColorRow: View {
             }
             .tint(Color(hex: "#6C63FF")) // Accent purple
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// MARK: - LIVE DRAG & DROP DELEGATE (NEW)
+// ─────────────────────────────────────────────────────────────
+
+struct PaletteDropDelegate: DropDelegate {
+    let item: SavedColor
+    @Binding var items: [SavedColor]
+    @Binding var draggedItem: SavedColor?
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedItem = nil
+        return true
+    }
+
+    func dropEntered(info: DropInfo) {
+        // Ensure we are dragging a valid item and hovering over a different item
+        guard let draggedItem = draggedItem,
+              draggedItem != item,
+              let from = items.firstIndex(of: draggedItem),
+              let to = items.firstIndex(of: item) else { return }
+
+        // Animate the physical swap in the array!
+        if from != to {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                let movedItem = items.remove(at: from)
+                items.insert(movedItem, at: to)
+            }
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
+    }
+    
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        return DropProposal(operation: .move)
     }
 }
 
