@@ -11,8 +11,7 @@ import SwiftUI
 @main
 struct AWBYWidgetExtensionBundle: WidgetBundle {
     var body: some Widget {
-       // AWBYWidgetExtension()
-        AWBYWidget()
+        PaletteWidget()
         AWBYWidgetExtensionControl()
         AWBYWidgetExtensionLiveActivity()
     }

@@ -1,84 +1,136 @@
-//
-//  Widgetsharedmodels.swift
-//  Awby
-//
-//  Created by seyedeh sepideh sadeghi far on 15/05/26.
-//
+import SwiftUI
 
-import Foundation
-import WidgetKit
+// ─────────────────────────────────────────────────────────────────────────────
+// ⚠️  ADD THIS FILE TO BOTH TARGETS IN XCODE
+//     Main App target  +  Widget Extension target
+//
+// SETUP STEPS:
+// 1. Main app target → Signing & Capabilities → + Capability
+//    → App Groups → + → group.com.yourname.awby
+// 2. Widget extension target → same App Groups capability → same group ID
+// 3. Change appGroupID below to match exactly
+// ─────────────────────────────────────────────────────────────────────────────
+
+let appGroupID = "group.com.SeyedehSepidehSadeghiFar.awby"   // ← change this
 
 // ═════════════════════════════════════════════════════════════
-// MARK: - WIDGET SHARED MODELS
-// ─────────────────────────────────────────────────────────────
-// ⚠️ Add this file to TWO targets in Xcode:
-//   • Your main app target  (AWBY)
-//   • Your widget extension (AWBYWidgetExtension)
-//
-// In Xcode File Inspector (right panel) → Target Membership
-// tick both checkboxes.
+// MARK: - SHARED MODELS
 // ═════════════════════════════════════════════════════════════
 
-// MARK: - App Group Identifier
-// Replace with YOUR App Group ID (must match in both targets'
-// Signing & Capabilities → App Groups)
+struct WidgetPaletteData: Codable, Equatable {
+    let id:     String
+    let title:  String
+    let colors: [WidgetColorData]
+    var style:  WidgetDisplayStyle
 
-let AWBYAppGroupID = "group.com.SeyedehSepidehSadeghiFar.awby"
-let AWBYWidgetPaletteKey = "awby.widget.selectedPalette"
-
-
-// MARK: - Codable Palette Model (shared between app and widget)
-
-public struct WidgetPalette: Codable, Equatable {
-    public var title: String
-    public var colors: [WidgetColor]
-
-    public struct WidgetColor: Codable, Equatable {
-        public var name: String
-        public var hex: String
+    struct WidgetColorData: Codable, Equatable {
+        let name: String
+        let hex:  String
     }
 
-    // Placeholder shown in widget gallery before user picks a palette
-    public static let placeholder = WidgetPalette(
-        title: "Twilight Studio",
+    static let placeholder = WidgetPaletteData(
+        id: "placeholder",
+        title: "Ocean Tones",
         colors: [
-            .init(name: "Void",     hex: "#0D0A1A"),
-            .init(name: "Iris",     hex: "#6C63FF"),
-            .init(name: "Coral",    hex: "#FF6B6B"),
-            .init(name: "Linen",    hex: "#F5F2EE"),
-            .init(name: "Slate",    hex: "#4A3580"),
-        ]
+            .init(name: "Cerulean",  hex: "#2A9D8F"),
+            .init(name: "Deep Navy", hex: "#1D3557"),
+            .init(name: "Sky Blue",  hex: "#87CEEB"),
+            .init(name: "Seafoam",   hex: "#2DD4BF"),
+            .init(name: "Arctic",    hex: "#A8DADC"),
+        ],
+        style: .stripes
     )
 }
 
+// ═════════════════════════════════════════════════════════════
+// MARK: - WIDGET DISPLAY STYLE
+// ═════════════════════════════════════════════════════════════
 
-// MARK: - Data Manager (read / write via shared UserDefaults)
+enum WidgetDisplayStyle: String, Codable, CaseIterable, Identifiable {
+    // ── Original styles (improved) ──────────────────────────
+    case stripes  = "Stripes"
+    case cards    = "Cards"
+    case mosaic   = "Mosaic"
+    // ── New styles ──────────────────────────────────────────
+    case spectrum = "Spectrum"
+    case ink      = "Ink"
+    case arch     = "Arch"
+    case minimal  = "Minimal"
+    case neon     = "Neon"
 
-public enum WidgetDataManager {
+    var id: String { rawValue }
 
-    private static var defaults: UserDefaults? {
-        UserDefaults(suiteName: AWBYAppGroupID)
+    var icon: String {
+        switch self {
+        case .stripes:  return "rectangle.split.3x1"
+        case .cards:    return "list.bullet.rectangle"
+        case .mosaic:   return "square.grid.2x2"
+        case .spectrum: return "paintbrush.pointed.fill"
+        case .ink:      return "drop.fill"
+        case .arch:     return "rainbow"
+        case .minimal:  return "minus.rectangle"
+        case .neon:     return "sparkles"
+        }
     }
 
-    /// Save a palette so the widget can read it.
-    /// Call WidgetCenter.shared.reloadAllTimelines() after this.
-    public static func save(_ palette: WidgetPalette) {
+    var description: String {
+        switch self {
+        case .stripes:  return "Bold colour stripes"
+        case .cards:    return "Colour list on dark"
+        case .mosaic:   return "Square swatch grid"
+        case .spectrum: return "Smooth gradient blend"
+        case .ink:      return "Abstract ink circles"
+        case .arch:     return "Stacked rainbow arches"
+        case .minimal:  return "Clean, typography‑first"
+        case .neon:     return "Glowing dots on dark"
+        }
+    }
+
+    var isNew: Bool {
+        switch self {
+        case .spectrum, .ink, .arch, .minimal, .neon: return true
+        default: return false
+        }
+    }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: - DATA MANAGER
+// ═════════════════════════════════════════════════════════════
+
+enum WidgetDataManager {
+    private static let key      = "awby_widget_palette"
+    private static var defaults: UserDefaults? { UserDefaults(suiteName: appGroupID) }
+
+    static func save(_ palette: WidgetPaletteData) {
         guard let data = try? JSONEncoder().encode(palette) else { return }
-        defaults?.set(data, forKey: AWBYWidgetPaletteKey)
+        defaults?.set(data, forKey: key)
     }
 
-    /// Load the most recently saved widget palette.
-    /// Returns nil if the user hasn't set one yet.
-    public static func load() -> WidgetPalette? {
-        guard
-            let data = defaults?.data(forKey: AWBYWidgetPaletteKey),
-            let palette = try? JSONDecoder().decode(WidgetPalette.self, from: data)
-        else { return nil }
-        return palette
+    static func load() -> WidgetPaletteData? {
+        guard let data = defaults?.data(forKey: key) else { return nil }
+        return try? JSONDecoder().decode(WidgetPaletteData.self, from: data)
     }
 
-    /// Remove the saved widget palette.
-    public static func clear() {
-        defaults?.removeObject(forKey: AWBYWidgetPaletteKey)
+    static func clear() { defaults?.removeObject(forKey: key) }
+
+    static var isSet: Bool { defaults?.data(forKey: key) != nil }
+}
+
+// ═════════════════════════════════════════════════════════════
+// MARK: - COLOUR HELPER  (both targets)
+// ═════════════════════════════════════════════════════════════
+
+extension Color {
+    init(widgetHex hex: String) {
+        let h = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+                   .replacingOccurrences(of: "#", with: "")
+        var val: UInt64 = 0
+        Scanner(string: h).scanHexInt64(&val)
+        self.init(
+            red:   Double((val >> 16) & 0xFF) / 255,
+            green: Double((val >>  8) & 0xFF) / 255,
+            blue:  Double( val        & 0xFF) / 255
+        )
     }
 }
