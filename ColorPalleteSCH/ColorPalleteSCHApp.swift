@@ -10,7 +10,7 @@ import SwiftData
 
 @main
   struct AWBYApp: App {
-      @AppStorage("hasCompletedOnboarding") var onboarded = false
+      @AppStorage("hasSeenOnboarding") var onboarded = false
        var body: some Scene {
           WindowGroup {
                if onboarded {

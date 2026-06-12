@@ -1,720 +1,641 @@
-//
-//  OnBoarding.swift
-//  Awby
-//
-//  Created by seyedeh sepideh sadeghi far on 11/05/26.
-//
-
 import SwiftUI
 
-
-
-// MARK: - Onboarding Root View
+// ═════════════════════════════════════════════════════════════
+// MARK: - ONBOARDING  (5 pages)
+//
+// Hook into your App entry point:
+//
+//   @AppStorage("hasSeenOnboarding") var hasSeenOnboarding = false
+//   ...
+//   if hasSeenOnboarding { MainTabView() } else { OnboardingView() }
+// ═════════════════════════════════════════════════════════════
 
 struct OnboardingView: View {
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
-    @State private var currentPage: Int = 0
-    @State private var dragOffset: CGFloat = 0
-    @State private var animateIn: Bool = false
-
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @State private var page = 0
     private let totalPages = 5
 
-    // Page backgrounds alternate dark ↔ light to match the app's own screens
-    private func bgColor(for page: Int) -> Color {
-        switch page {
-        case 0: return Color(hex: "#F5F2EE")   // Warm off-white — Welcome
-        case 1: return Color(hex: "#0D0D0D")   // Dark — AI Studio
-        case 2: return Color(hex: "#F5F2EE")   // Warm off-white — Discover
-        case 3: return Color(hex: "#0D0D0D")   // Dark — Build & Extract
-        case 4: return Color(hex: "#F5F2EE")   // Warm off-white — Get Started
-        default: return Color(hex: "#F5F2EE")
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            Color("AppBackground").ignoresSafeArea()
+
+            TabView(selection: $page) {
+                OBWelcomePage().tag(0)
+                OBAIPage().tag(1)
+                OBBuildPage().tag(2)
+                OBToolsPage().tag(3)
+                OBWidgetPage(onFinish: finish).tag(4)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+
+            OBBottomNav(page: $page, total: totalPages, onSkip: finish)
         }
+        .ignoresSafeArea()
     }
 
-    private var isDark: Bool { currentPage == 1 || currentPage == 3 }
+    private func finish() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        withAnimation(.spring(response: 0.5)) { hasSeenOnboarding = true }
+    }
+}
+
+
+// ═════════════════════════════════════════════════════════════
+// MARK: - BOTTOM NAVIGATION BAR
+// ═════════════════════════════════════════════════════════════
+
+private struct OBBottomNav: View {
+    @Binding var page: Int
+    let total: Int
+    let onSkip: () -> Void
+
+    var isLast: Bool { page == total - 1 }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Skip (hidden on last page)
+            Button("Skip", action: onSkip)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color("AppText").opacity(0.32))
+                .frame(width: 64, alignment: .leading)
+                .opacity(isLast ? 0 : 1)
+
+            Spacer()
+
+            // Progress dots
+            HStack(spacing: 7) {
+                ForEach(0..<total, id: \.self) { i in
+                    Capsule()
+                        .fill(i == page
+                              ? Color(hex: "#6C63FF")
+                              : Color("AppText").opacity(0.14))
+                        .frame(width: i == page ? 26 : 7, height: 7)
+                        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: page)
+                }
+            }
+
+            Spacer()
+
+            // Next (hidden on last page)
+            Button {
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                withAnimation(.spring(response: 0.45)) { page += 1 }
+            } label: {
+                HStack(spacing: 3) {
+                    Text("Next")
+                    Image(systemName: "arrow.right")
+                }
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color(hex: "#6C63FF"))
+            }
+            .frame(width: 64, alignment: .trailing)
+            .opacity(isLast ? 0 : 1)
+        }
+        .padding(.horizontal, 28)
+        .padding(.bottom, 50)
+        .padding(.top, 12)
+        .background(
+            LinearGradient(
+                colors: [Color("AppBackground").opacity(0), Color("AppBackground")],
+                startPoint: .top, endPoint: .center
+            )
+            .ignoresSafeArea()
+        )
+    }
+}
+
+
+// ═════════════════════════════════════════════════════════════
+// MARK: - PAGE 1 · WELCOME
+// ═════════════════════════════════════════════════════════════
+
+private struct OBWelcomePage: View {
+    @State private var appeared = false
+    private let palette = ["#FF6B6B", "#FFE66D", "#4ECDC4", "#45B7D1", "#A29BFE"]
 
     var body: some View {
         ZStack {
-            // ── Animated background colour ──────────────────────
-            bgColor(for: currentPage)
-                .ignoresSafeArea()
-                .animation(.easeInOut(duration: 0.45), value: currentPage)
+            Color("AppBackground")
 
             VStack(spacing: 0) {
-
-                // ── Skip button ────────────────────────────────
-                HStack {
-                    Spacer()
-                    if currentPage < totalPages - 1 {
-                        Button("Skip") {
-                            complete()
-                        }
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(isDark ? Color.white.opacity(0.4) : Color(hex: "#1A1A1A").opacity(0.35))
-                        .padding(.horizontal, 22)
-                        .padding(.top, 16)
+                // ── Color strip header ───────────────────────
+                ZStack(alignment: .bottom) {
+                    HStack(spacing: 0) {
+                        ForEach(palette, id: \.self) { Color(hex: $0) }
                     }
-                }
-                .frame(height: 52)
+                    .frame(height: 260)
 
-                // ── Illustration area ──────────────────────────
-                ZStack {
-                    switch currentPage {
-                    case 0: WelcomeIllustration(animate: animateIn)
-                    case 1: AIIllustration(animate: animateIn)
-                    case 2: DiscoverIllustration(animate: animateIn)
-                    case 3: BuildExtractIllustration(animate: animateIn)
-                    case 4: GetStartedIllustration(animate: animateIn)
-                    default: EmptyView()
+                    // Gradient fade to background
+                    LinearGradient(
+                        colors: [.clear, Color("AppBackground")],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                    .frame(height: 100)
+
+                    // Floating title card
+                    VStack(spacing: 6) {
+                        Text("AWBY")
+                            .font(.system(size: 76, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.25), radius: 12, y: 4)
+                        Text("آبی  ·  Blue in Persian")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white.opacity(0.75))
                     }
+                    .padding(.bottom, 20)
+                    .scaleEffect(appeared ? 1 : 0.88)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.6).delay(0.1), value: appeared)
                 }
-                .frame(maxWidth: .infinity)
-                .frame(height: 340)
-                .clipped()
 
-                // ── Text content ───────────────────────────────
-                VStack(spacing: 12) {
-                    Text(pages[currentPage].headline)
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(isDark ? Color.white : Color(hex: "#1A1A1A"))
+                // ── Text ────────────────────────────────────
+                VStack(spacing: 18) {
+                    Spacer().frame(height: 28)
+
+                    Text("Your Personal\nColor Studio")
+                        .font(.system(size: 32, weight: .black, design: .rounded))
+                        .foregroundStyle(Color("AppText"))
                         .multilineTextAlignment(.center)
-                        .kerning(-0.5)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(2)
 
-                    Text(pages[currentPage].body)
+                    Text("Build, save, and live with beautiful\ncolor palettes — on every screen\nyou own.")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(isDark ? Color.white.opacity(0.55) : Color(hex: "#1A1A1A").opacity(0.5))
+                        .foregroundStyle(Color("AppText").opacity(0.52))
                         .multilineTextAlignment(.center)
-                        .lineSpacing(3)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(5)
 
-                    // Apple Intelligence disclaimer on AI page
-                    if currentPage == 1 {
-                        HStack(spacing: 6) {
-                            Image(systemName: "applelogo")
-                                .font(.system(size: 11, weight: .semibold))
-                            Text("Requires Apple Intelligence · iPhone 15 Pro or later · iOS 18.1+")
-                                .font(.system(size: 11, weight: .semibold))
+                    // Feature pills
+                    HStack(spacing: 8) {
+                        ForEach(["✦ AI", "📷 Photo", "🎨 Manual"], id: \.self) { label in
+                            Text(label)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(Color("AppText").opacity(0.45))
+                                .padding(.horizontal, 13)
+                                .padding(.vertical, 7)
+                                .background(Capsule().fill(Color("AppText").opacity(0.07)))
                         }
-                        .foregroundStyle(Color(hex: "#A78BFA"))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(Color(hex: "#6C63FF").opacity(0.14))
-                                .overlay(
-                                    Capsule()
-                                        .stroke(Color(hex: "#6C63FF").opacity(0.3), lineWidth: 1)
-                                )
-                        )
-                        .padding(.top, 4)
                     }
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 8)
+                    .animation(.spring(response: 0.5).delay(0.25), value: appeared)
                 }
-                .padding(.horizontal, 36)
-                .padding(.top, 32)
-                .animation(.easeInOut(duration: 0.3), value: currentPage)
+                .padding(.horizontal, 30)
 
-                Spacer(minLength: 0)
-
-                // ── Progress dots ──────────────────────────────
-                HStack(spacing: 8) {
-                    ForEach(0..<totalPages, id: \.self) { i in
-                        Capsule()
-                            .fill(
-                                i == currentPage
-                                    ? (isDark ? Color.white : Color(hex: "#1A1A1A"))
-                                    : (isDark ? Color.white.opacity(0.2) : Color(hex: "#1A1A1A").opacity(0.15))
-                            )
-                            .frame(width: i == currentPage ? 24 : 7, height: 7)
-                            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: currentPage)
-                    }
-                }
-                .padding(.bottom, 24)
-
-                // ── CTA Button ─────────────────────────────────
-                Button(action: advance) {
-                    Text(currentPage == totalPages - 1 ? "Start Exploring" : "Continue")
-                        .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundStyle(isDark ? Color(hex: "#0D0D0D") : Color.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 58)
-                        .background(
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(isDark ? Color.white : Color(hex: "#1A1A1A"))
-                        )
-                }
-                .padding(.horizontal, 22)
-                .padding(.bottom, 48)
+                Spacer()
             }
         }
-        .gesture(
-            DragGesture(minimumDistance: 30)
-                .onEnded { value in
-                    if value.translation.width < -50, currentPage < totalPages - 1 {
-                        withAnimation(.spring(response: 0.45)) { currentPage += 1 }
-                        triggerPageAnimation()
-                    } else if value.translation.width > 50, currentPage > 0 {
-                        withAnimation(.spring(response: 0.45)) { currentPage -= 1 }
-                        triggerPageAnimation()
-                    }
-                }
-        )
-        .onAppear { triggerPageAnimation() }
-    }
-
-    // MARK: - Actions
-
-    private func advance() {
-        if currentPage < totalPages - 1 {
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.82)) {
-                currentPage += 1
-            }
-            triggerPageAnimation()
-        } else {
-            complete()
+        .onAppear {
+            withAnimation(.spring(response: 0.65).delay(0.1)) { appeared = true }
         }
     }
-
-    private func complete() {
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        withAnimation(.easeInOut(duration: 0.3)) {
-            hasCompletedOnboarding = true
-        }
-    }
-
-    private func triggerPageAnimation() {
-        animateIn = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.78)) {
-                animateIn = true
-            }
-        }
-    }
-
-    // MARK: - Page Content
-
-    private let pages: [OnboardingPage] = [
-        OnboardingPage(
-            headline: "Your Color Studio",
-            body: "Create, explore, and save beautiful color palettes. Everything you need, all in one place."
-        ),
-        OnboardingPage(
-            headline: "Generate with AI",
-            body: "Pick any color. The AI builds three completely different palettes instantly. Lock what you love, regenerate the rest."
-        ),
-        OnboardingPage(
-            headline: "Discover Any Color",
-            body: "Search any color by name or hex code. Explore tints, shades, and six types of color harmony."
-        ),
-        OnboardingPage(
-            headline: "Build or Extract",
-            body: "Design a palette from scratch with full control — or extract colors from any photo with one tap."
-        ),
-        OnboardingPage(
-            headline: "You're Ready",
-            body: "Your palettes are saved privately on your device. No account. No ads. No tracking. Just color."
-        ),
-    ]
-}
-
-// MARK: - Page Model
-
-struct OnboardingPage {
-    let headline: String
-    let body: String
 }
 
 
 // ═════════════════════════════════════════════════════════════
-// MARK: - PAGE ILLUSTRATIONS
-// Each illustration mirrors the actual app UI it's describing.
+// MARK: - PAGE 2 · AI GENERATOR
 // ═════════════════════════════════════════════════════════════
 
+private struct OBAIPage: View {
+    @State private var appeared = false
+    @State private var pulse    = false
+    private let presets = ["Pastel", "Intense", "Fancy Dark", "Tarnish", "Pimp", "Sensible"]
 
-// ── PAGE 0: Welcome ──────────────────────────────────────────
+    var body: some View {
+        ZStack {
+            Color("AppBackground")
 
-struct WelcomeIllustration: View {
-    let animate: Bool
+            VStack(spacing: 0) {
+                // ── Glowing sparkle orb ──────────────────────
+                ZStack {
+                    // Outer soft halo
+                    Circle()
+                        .fill(Color(hex: "#6C63FF").opacity(0.1))
+                        .frame(width: 260, height: 260)
+                        .scaleEffect(pulse ? 1.18 : 1.0)
+                        .animation(
+                            .easeInOut(duration: 2.4)
+                            .repeatForever(autoreverses: true), value: pulse)
 
-    private let swatches: [(color: String, size: CGFloat, x: CGFloat, y: CGFloat, delay: Double)] = [
-        ("#6C63FF", 72, -80, -60, 0.00),
-        ("#FF6B6B", 56, 70, -90, 0.06),
-        ("#2DD4BF", 64, 90, 20, 0.12),
-        ("#F59E0B", 48, -30, 80, 0.18),
-        ("#F43F5E", 40, -110, 30, 0.24),
-        ("#0EA5E9", 52, 20, -30, 0.30),
-        ("#6DBF8A", 44, 110, -50, 0.10),
-        ("#FF8C42", 36, -60, -110, 0.20),
-        ("#A78BFA", 60, -10, 110, 0.08),
-        ("#EC4899", 38, 50, 95, 0.16),
+                    // Main orb
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [Color(hex: "#6C63FF"), Color(hex: "#A78BFA")],
+                            startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 160, height: 160)
+                        .shadow(color: Color(hex: "#6C63FF").opacity(0.5), radius: 32)
+
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 62, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .frame(height: 280)
+                .scaleEffect(appeared ? 1 : 0.75)
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.65, dampingFraction: 0.7).delay(0.1), value: appeared)
+
+                // ── Text ────────────────────────────────────
+                VStack(spacing: 18) {
+                    Spacer().frame(height: 20)
+
+                    Text("Meet Your\nAI Designer")
+                        .font(.system(size: 32, weight: .black, design: .rounded))
+                        .foregroundStyle(Color("AppText"))
+                        .multilineTextAlignment(.center)
+
+                    Text("Describe a vibe. Set the mood.\nApple Intelligence crafts a harmonious\npalette in seconds — all on device.")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Color("AppText").opacity(0.52))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
+
+                    // Preset chips
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(presets, id: \.self) { preset in
+                                Text(preset)
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundStyle(Color(hex: "#6C63FF"))
+                                    .padding(.horizontal, 13).padding(.vertical, 7)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color(hex: "#6C63FF").opacity(0.1))
+                                            .overlay(Capsule()
+                                                .stroke(Color(hex: "#6C63FF").opacity(0.2), lineWidth: 1))
+                                    )
+                            }
+                        }
+                        .padding(.horizontal, 30)
+                    }
+
+                    // Requirement note
+                    HStack(spacing: 6) {
+                        Image(systemName: "apple.logo")
+                        Text("Requires iOS 26 + Apple Intelligence")
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color("AppText").opacity(0.25))
+                }
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 14)
+                .animation(.spring(response: 0.55).delay(0.22), value: appeared)
+
+                Spacer()
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.65).delay(0.1)) { appeared = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                withAnimation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true)) {
+                    pulse = true
+                }
+            }
+        }
+    }
+}
+
+
+// ═════════════════════════════════════════════════════════════
+// MARK: - PAGE 3 · THREE WAYS TO BUILD
+// ═════════════════════════════════════════════════════════════
+
+private struct OBBuildPage: View {
+    @State private var appeared = false
+
+    private struct Method: Identifiable {
+        let id = UUID()
+        let icon: String
+        let label: String
+        let desc:  String
+        let color: String
+    }
+
+    private let methods = [
+        Method(icon: "sparkles",        label: "AI",     desc: "Describe a mood,\nget a palette",    color: "#6C63FF"),
+        Method(icon: "camera.fill",     label: "Photo",  desc: "Extract colors\nfrom any image",     color: "#F59E0B"),
+        Method(icon: "paintpalette.fill",label: "Manual", desc: "Build color by\ncolor, your way", color: "#10B981"),
     ]
 
     var body: some View {
         ZStack {
-            // Radiating swatches
-            ForEach(Array(swatches.enumerated()), id: \.offset) { i, swatch in
-                RoundedRectangle(cornerRadius: swatch.size * 0.28)
-                    .fill(Color(hex: swatch.color))
-                    .frame(width: swatch.size, height: swatch.size)
-                    .shadow(color: Color(hex: swatch.color).opacity(0.3), radius: 12, y: 4)
-                    .offset(
-                        x: animate ? swatch.x : 0,
-                        y: animate ? swatch.y : 0
-                    )
-                    .scaleEffect(animate ? 1.0 : 0.2)
-                    .opacity(animate ? 1.0 : 0)
-                    .animation(
-                        .spring(response: 0.7, dampingFraction: 0.72)
-                            .delay(swatch.delay),
-                        value: animate
-                    )
-            }
+            Color("AppBackground")
 
-            // Centre wordmark
-            VStack(spacing: 4) {
-                Text("AWBY")
-                    .font(.system(size: 36, weight: .black, design: .rounded))
-                    .foregroundStyle(Color(hex: "#1A1A1A"))
-                    .kerning(-1)
-                Text("Color Studio")
-                    .font(.system(size: 14, weight: .semibold))
-                    .tracking(2)
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.35))
-            }
-            .scaleEffect(animate ? 1.0 : 0.7)
-            .opacity(animate ? 1.0 : 0)
-            .animation(.spring(response: 0.6).delay(0.25), value: animate)
-        }
-    }
-}
+            VStack(spacing: 0) {
+                Spacer().frame(height: 60)
 
-
-// ── PAGE 1: AI Generator ─────────────────────────────────────
-
-struct AIIllustration: View {
-    let animate: Bool
-
-    private let variations: [[String]] = [
-        ["#0D0A1A", "#6C63FF", "#F43F5E", "#F5F2EE", "#4A3580"],   // Bold Contrast
-        ["#FF6B6B", "#0EA5E9", "#B5A090", "#39FF14", "#1A0808"],    // Unexpected Mix
-        ["#1A0D2E", "#6C63FF", "#C4B8F0", "#FF8C42", "#888888"],    // Tonal Depth
-    ]
-
-    private let labels = ["Bold\nContrast", "Unexpected\nMix", "Tonal\nDepth"]
-
-    var body: some View {
-        VStack(spacing: 16) {
-            // Sparkle header
-            HStack(spacing: 8) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(Color(hex: "#A78BFA"))
-                Text("3 VARIATIONS")
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(2)
-                    .foregroundStyle(Color(hex: "#A78BFA"))
-            }
-            .opacity(animate ? 1 : 0)
-            .animation(.easeOut(duration: 0.4).delay(0.05), value: animate)
-
-            // Three variation strips
-            HStack(spacing: 10) {
-                ForEach(Array(variations.enumerated()), id: \.offset) { vIndex, colors in
-                    VStack(spacing: 6) {
-                        // Color strip
-                        HStack(spacing: 2) {
-                            ForEach(Array(colors.enumerated()), id: \.offset) { _, hex in
-                                RoundedRectangle(cornerRadius: 5)
-                                    .fill(Color(hex: hex))
+                // ── Three method cards ───────────────────────
+                HStack(spacing: 12) {
+                    ForEach(Array(methods.enumerated()), id: \.element.id) { i, m in
+                        VStack(spacing: 14) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color(hex: m.color).opacity(0.12))
+                                    .frame(width: 72, height: 72)
+                                Image(systemName: m.icon)
+                                    .font(.system(size: 28, weight: .semibold))
+                                    .foregroundStyle(Color(hex: m.color))
                             }
+                            Text(m.label)
+                                .font(.system(size: 14, weight: .black, design: .rounded))
+                                .foregroundStyle(Color("AppText"))
+                            Text(m.desc)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color("AppText").opacity(0.42))
+                                .multilineTextAlignment(.center)
+                                .lineSpacing(3)
                         }
-                        .frame(height: 100)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 14)
-                                .stroke(
-                                    vIndex == 0 ? Color.white.opacity(0.3) : Color.white.opacity(0.08),
-                                    lineWidth: vIndex == 0 ? 2 : 1
+                        .padding(.vertical, 22).padding(.horizontal, 8)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 22)
+                                .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                                .shadow(color: Color("AppText").opacity(0.06), radius: 14, y: 5)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 22)
+                                        .stroke(Color(hex: m.color).opacity(0.14), lineWidth: 1.5)
                                 )
                         )
-                        .scaleEffect(vIndex == 0 ? 1.0 : 0.94)
-                        .opacity(vIndex == 0 ? 1.0 : 0.5)
-
-                        // Label
-                        Text(labels[vIndex])
-                            .font(.system(size: 9, weight: .bold))
-                            .tracking(0.3)
-                            .foregroundStyle(
-                                vIndex == 0
-                                    ? Color.white.opacity(0.9)
-                                    : Color.white.opacity(0.3)
-                            )
-                            .multilineTextAlignment(.center)
+                        .scaleEffect(appeared ? 1 : 0.88)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(
+                            .spring(response: 0.55, dampingFraction: 0.72)
+                            .delay(0.1 + Double(i) * 0.09),
+                            value: appeared)
                     }
-                    .opacity(animate ? 1 : 0)
-                    .offset(y: animate ? 0 : 30)
-                    .animation(
-                        .spring(response: 0.6, dampingFraction: 0.78)
-                            .delay(0.1 + Double(vIndex) * 0.08),
-                        value: animate
+                }
+                .padding(.horizontal, 22)
+
+                // ── Text ────────────────────────────────────
+                VStack(spacing: 18) {
+                    Spacer().frame(height: 36)
+
+                    Text("Three Ways\nto Create")
+                        .font(.system(size: 32, weight: .black, design: .rounded))
+                        .foregroundStyle(Color("AppText"))
+                        .multilineTextAlignment(.center)
+
+                    Text("No matter your mood or workflow,\nAWBY has the right tool.\nSwitch between them anytime.")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Color("AppText").opacity(0.52))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
+
+                    // Tip chip
+                    HStack(spacing: 6) {
+                        Image(systemName: "lightbulb.fill")
+                            .foregroundStyle(Color(hex: "#F59E0B"))
+                        Text("Tap the ＋ button on the home screen to start")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color("AppText").opacity(0.4))
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(hex: "#F59E0B").opacity(0.08))
                     )
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5).delay(0.38), value: appeared)
                 }
-            }
-            .padding(.horizontal, 28)
+                .padding(.horizontal, 30)
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.5).delay(0.28), value: appeared)
 
-            // Swipe indicator
-            HStack(spacing: 6) {
-                Image(systemName: "arrow.left")
-                    .font(.system(size: 11))
-                Text("Swipe to compare")
-                    .font(.system(size: 11, weight: .medium))
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 11))
+                Spacer()
             }
-            .foregroundStyle(Color.white.opacity(0.28))
-            .opacity(animate ? 1 : 0)
-            .animation(.easeOut(duration: 0.4).delay(0.4), value: animate)
-
-            // Lock indicator
-            HStack(spacing: 8) {
-                HStack(spacing: 5) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 11, weight: .bold))
-                    Text("Lock colors you love")
-                        .font(.system(size: 11, weight: .semibold))
-                }
-                .foregroundStyle(Color(hex: "#A78BFA"))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(Color(hex: "#6C63FF").opacity(0.16))
-                        .overlay(
-                            Capsule().stroke(Color(hex: "#6C63FF").opacity(0.3), lineWidth: 1)
-                        )
-                )
-            }
-            .opacity(animate ? 1 : 0)
-            .animation(.easeOut(duration: 0.4).delay(0.5), value: animate)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.65)) { appeared = true }
         }
     }
 }
 
 
-// ── PAGE 2: Discover ─────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════
+// MARK: - PAGE 4 · COLOR TOOLS & HARMONY
+// ═════════════════════════════════════════════════════════════
 
-struct DiscoverIllustration: View {
-    let animate: Bool
-
-    private let sections: [(label: String, colors: [String])] = [
-        ("Tints",         ["#EDE9FE", "#DDD6FE", "#C4B5FD", "#A78BFA", "#8B5CF6", "#7C3AED"]),
-        ("Shades",        ["#5B21B6", "#4C1D95", "#3B0764", "#2E1065", "#1E0A40", "#0D061F"]),
-        ("Analogous",     ["#6EE7B7", "#34D399", "#6C63FF", "#F59E0B", "#EC4899", "#EF4444"]),
-        ("Complementary", ["#6C63FF", "#7C3AED", "#F59E0B", "#FBBF24", "#FCD34D"]),
-    ]
+private struct OBToolsPage: View {
+    @State private var appeared = false
+    private let harmonyHexes = ["#E63946", "#FF9F0A", "#FFD60A", "#34C759", "#0A84FF", "#BF5AF2"]
+    private let spaces = ["HEX", "RGB", "CMYK", "HSL", "HSB", "LAB"]
 
     var body: some View {
-        VStack(spacing: 14) {
-            // Search bar mockup
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.35))
-                Text("dusty rose, #6C63FF...")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.3))
+        ZStack {
+            Color("AppBackground")
+
+            VStack(spacing: 0) {
+                // ── Harmony wheel ────────────────────────────
+                ZStack {
+                    // Center eyedropper hub
+                    Circle()
+                        .fill(Color(hex: "#6C63FF"))
+                        .frame(width: 56, height: 56)
+                        .shadow(color: Color(hex: "#6C63FF").opacity(0.45), radius: 14)
+                        .overlay(
+                            Image(systemName: "eyedropper")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundStyle(.white)
+                        )
+                        .scaleEffect(appeared ? 1 : 0.5)
+                        .opacity(appeared ? 1 : 0)
+                        .animation(.spring(response: 0.55).delay(0.35), value: appeared)
+
+                    // Orbiting color dots
+                    ForEach(Array(harmonyHexes.enumerated()), id: \.offset) { i, hex in
+                        let deg = Double(i) * 60.0 - 90.0
+                        let rad = deg * .pi / 180.0
+                        Circle()
+                            .fill(Color(hex: hex))
+                            .frame(width: 50, height: 50)
+                            .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 1.5))
+                            .shadow(color: Color(hex: hex).opacity(0.45), radius: 8, y: 3)
+                            .offset(x: CGFloat(92 * cos(rad)), y: CGFloat(92 * sin(rad)))
+                            .scaleEffect(appeared ? 1 : 0.3)
+                            .opacity(appeared ? 1 : 0)
+                            .animation(
+                                .spring(response: 0.6, dampingFraction: 0.62)
+                                .delay(0.08 + Double(i) * 0.07),
+                                value: appeared)
+                    }
+                }
+                .frame(width: 260, height: 260)
+                .padding(.top, 52)
+
+                // Color space pills
+                HStack(spacing: 6) {
+                    ForEach(spaces, id: \.self) { s in
+                        Text(s)
+                            .font(.system(size: 10, weight: .black, design: .monospaced))
+                            .foregroundStyle(Color("AppText").opacity(0.38))
+                            .padding(.horizontal, 9).padding(.vertical, 5)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color("AppText").opacity(0.07))
+                            )
+                    }
+                }
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.5).delay(0.5), value: appeared)
+                .padding(.top, 18)
+
+                // ── Text ────────────────────────────────────
+                VStack(spacing: 18) {
+                    Spacer().frame(height: 24)
+
+                    Text("Every Color,\nFully Understood")
+                        .font(.system(size: 32, weight: .black, design: .rounded))
+                        .foregroundStyle(Color("AppText"))
+                        .multilineTextAlignment(.center)
+
+                    Text("Tap any color for its full data — HEX,\nRGB, CMYK, HSL, LAB and more.\nPlus 6 harmony types, one tap to copy.")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Color("AppText").opacity(0.52))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
+                }
+                .padding(.horizontal, 30)
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.5).delay(0.3), value: appeared)
+
                 Spacer()
-                Image(systemName: "eyedropper.halffull")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 32, height: 32)
-                    .background(Color(hex: "#1A1A1A"))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 11)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Color.white)
-                    .shadow(color: Color(hex: "#1A1A1A").opacity(0.07), radius: 8, y: 3)
-            )
-            .padding(.horizontal, 22)
-            .opacity(animate ? 1 : 0)
-            .offset(y: animate ? 0 : -10)
-            .animation(.spring(response: 0.5).delay(0.05), value: animate)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.65)) { appeared = true }
+        }
+    }
+}
 
-            // Harmony rows
-            VStack(spacing: 8) {
-                ForEach(Array(sections.enumerated()), id: \.offset) { i, section in
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(section.label.uppercased())
-                            .font(.system(size: 9, weight: .bold))
-                            .tracking(1.5)
-                            .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.3))
-                            .padding(.leading, 22)
 
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 6) {
-                                ForEach(Array(section.colors.enumerated()), id: \.offset) { j, hex in
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color(hex: hex))
-                                        .frame(width: 44, height: 44)
-                                        .opacity(animate ? 1 : 0)
-                                        .scaleEffect(animate ? 1 : 0.7)
-                                        .animation(
-                                            .spring(response: 0.5, dampingFraction: 0.75)
-                                                .delay(0.15 + Double(i) * 0.07 + Double(j) * 0.04),
-                                            value: animate
-                                        )
+// ═════════════════════════════════════════════════════════════
+// MARK: - PAGE 5 · WIDGETS & GO
+// ═════════════════════════════════════════════════════════════
+
+private struct OBWidgetPage: View {
+    let onFinish: () -> Void
+    @State private var appeared = false
+
+    private let stripesColors = ["#2A9D8F", "#264653", "#E9C46A", "#F4A261", "#E76F51"]
+    private let neonColors    = ["#6C63FF", "#FF6584", "#43CBFF", "#F9B234", "#A29BFE"]
+
+    var body: some View {
+        ZStack {
+            Color("AppBackground")
+
+            VStack(spacing: 0) {
+                // ── Two mini widget previews ─────────────────
+                HStack(spacing: 16) {
+
+                    // Stripes
+                    ZStack(alignment: .bottom) {
+                        HStack(spacing: 0) {
+                            ForEach(stripesColors, id: \.self) { Color(hex: $0) }
+                        }
+                        LinearGradient(
+                            colors: [.clear, .black.opacity(0.55)],
+                            startPoint: .center, endPoint: .bottom)
+                        Text("Ocean Tones")
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .foregroundStyle(.white)
+                            .padding(.bottom, 11)
+                    }
+                    .frame(width: 152, height: 152)
+                    .clipShape(RoundedRectangle(cornerRadius: 28))
+                    .shadow(color: Color("AppText").opacity(0.18), radius: 18, y: 8)
+
+                    // Neon
+                    ZStack {
+                        Color(red: 0.03, green: 0.03, blue: 0.09)
+                        VStack(spacing: 14) {
+                            Text("NEON")
+                                .font(.system(size: 8, weight: .bold)).tracking(2)
+                                .foregroundStyle(.white.opacity(0.28))
+                            VStack(spacing: 10) {
+                                HStack(spacing: 12) {
+                                    ForEach(Array(neonColors.prefix(3).enumerated()), id: \.offset) { _, hex in
+                                        neonOrb(hex)
+                                    }
+                                }
+                                HStack(spacing: 12) {
+                                    ForEach(Array(neonColors.dropFirst(3).enumerated()), id: \.offset) { _, hex in
+                                        neonOrb(hex)
+                                    }
                                 }
                             }
-                            .padding(.horizontal, 22)
                         }
                     }
+                    .frame(width: 152, height: 152)
+                    .clipShape(RoundedRectangle(cornerRadius: 28))
+                    .shadow(color: Color("AppText").opacity(0.18), radius: 18, y: 8)
                 }
-            }
-        }
-    }
-}
+                .scaleEffect(appeared ? 1 : 0.82)
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.65, dampingFraction: 0.72).delay(0.1), value: appeared)
+                .padding(.top, 60)
 
+                Text("8 WIDGET STYLES · EDGE TO EDGE")
+                    .font(.system(size: 9, weight: .bold)).tracking(2)
+                    .foregroundStyle(Color("AppText").opacity(0.22))
+                    .padding(.top, 18)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.spring(response: 0.5).delay(0.28), value: appeared)
 
-// ── PAGE 3: Build & Extract ───────────────────────────────────
+                // ── Text ────────────────────────────────────
+                VStack(spacing: 18) {
+                    Spacer().frame(height: 24)
 
-struct BuildExtractIllustration: View {
-    let animate: Bool
+                    Text("Lives on Your\nHome Screen")
+                        .font(.system(size: 32, weight: .black, design: .rounded))
+                        .foregroundStyle(Color("AppText"))
+                        .multilineTextAlignment(.center)
 
-    private let manualColors: [(hex: String, name: String)] = [
-        ("#E63946", "Crimson"),
-        ("#F4A261", "Amber"),
-        ("#2A9D8F", "Teal"),
-        ("#6C63FF", "Violet"),
-    ]
-
-    private let photoColors = ["#8B4513", "#D2691E", "#F4A460", "#228B22", "#87CEEB"]
-
-    var body: some View {
-        HStack(spacing: 14) {
-
-            // ── Left: Manual Studio ────────────────────────
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 6) {
-                    Image(systemName: "paintbrush.fill")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color(hex: "#FF8C42"))
-                    Text("MANUAL")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.5)
-                        .foregroundStyle(Color(hex: "#FF8C42"))
+                    Text("Pin any palette as a widget in 8 styles —\nStripes, Neon, Arch, Spectrum and more.\nExport stickers to share anywhere.")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Color("AppText").opacity(0.52))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(5)
                 }
+                .padding(.horizontal, 30)
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.5).delay(0.2), value: appeared)
 
-                VStack(spacing: 6) {
-                    ForEach(Array(manualColors.enumerated()), id: \.offset) { i, color in
-                        HStack(spacing: 8) {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(hex: color.hex))
-                                .frame(width: 30, height: 30)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                                )
-                            Text(color.name)
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(Color.white.opacity(0.75))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(
-                            RoundedRectangle(cornerRadius: 10)
-                                .fill(Color.white.opacity(0.07))
-                        )
-                        .opacity(animate ? 1 : 0)
-                        .offset(x: animate ? 0 : -20)
-                        .animation(
-                            .spring(response: 0.55, dampingFraction: 0.8)
-                                .delay(0.1 + Double(i) * 0.07),
-                            value: animate
-                        )
-                    }
+                Spacer()
 
-                    // Add button
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
-                        Text("Add Color")
-                            .font(.system(size: 11, weight: .semibold))
+                // ── Let's Go! ────────────────────────────────
+                Button(action: onFinish) {
+                    HStack(spacing: 12) {
+                        Text("Let's Go!")
+                            .font(.system(size: 19, weight: .black, design: .rounded))
+                        Image(systemName: "arrow.right.circle.fill")
+                            .font(.system(size: 22))
                     }
-                    .foregroundStyle(Color(hex: "#FF8C42"))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity).frame(height: 64)
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 1.2, dash: [5, 4]))
-                            .foregroundStyle(Color(hex: "#FF8C42").opacity(0.35))
+                        RoundedRectangle(cornerRadius: 22)
+                            .fill(LinearGradient(
+                                colors: [Color(hex: "#6C63FF"), Color(hex: "#A78BFA")],
+                                startPoint: .leading, endPoint: .trailing))
+                            .shadow(color: Color(hex: "#6C63FF").opacity(0.38), radius: 18, y: 7)
                     )
-                    .opacity(animate ? 1 : 0)
-                    .animation(.easeOut(duration: 0.4).delay(0.42), value: animate)
                 }
+                .padding(.horizontal, 28)
+                .padding(.bottom, 130)
+                .scaleEffect(appeared ? 1 : 0.92)
+                .opacity(appeared ? 1 : 0)
+                .animation(.spring(response: 0.55).delay(0.4), value: appeared)
             }
-            .frame(maxWidth: .infinity)
-
-            // Divider
-            Rectangle()
-                .fill(Color.white.opacity(0.1))
-                .frame(width: 1)
-                .padding(.vertical, 10)
-
-            // ── Right: Image Extract ───────────────────────
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 6) {
-                    Image(systemName: "photo.on.rectangle.angled")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color(hex: "#2DD4BF"))
-                    Text("EXTRACT")
-                        .font(.system(size: 9, weight: .bold))
-                        .tracking(1.5)
-                        .foregroundStyle(Color(hex: "#2DD4BF"))
-                }
-
-                // Photo frame mockup
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(hex: "#228B22"),
-                                    Color(hex: "#8B4513"),
-                                    Color(hex: "#87CEEB"),
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(height: 80)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                        )
-
-                    // Photo icon
-                    VStack(spacing: 4) {
-                        Image(systemName: "photo")
-                            .font(.system(size: 18, weight: .light))
-                            .foregroundStyle(.white.opacity(0.6))
-                        Text("Your Photo")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.5))
-                    }
-                }
-                .opacity(animate ? 1 : 0)
-                .scaleEffect(animate ? 1 : 0.85)
-                .animation(.spring(response: 0.55).delay(0.15), value: animate)
-
-                // Extracted colors
-                HStack(spacing: 5) {
-                    ForEach(Array(photoColors.enumerated()), id: \.offset) { i, hex in
-                        VStack(spacing: 3) {
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color(hex: hex))
-                                .frame(height: 36)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
-                                )
-                            Text(hex.dropFirst())
-                                .font(.system(size: 6, weight: .bold, design: .monospaced))
-                                .foregroundStyle(Color.white.opacity(0.45))
-                        }
-                        .opacity(animate ? 1 : 0)
-                        .offset(y: animate ? 0 : 15)
-                        .animation(
-                            .spring(response: 0.5, dampingFraction: 0.78)
-                                .delay(0.25 + Double(i) * 0.06),
-                            value: animate
-                        )
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 22)
-    }
-}
-
-
-// ── PAGE 4: Get Started ───────────────────────────────────────
-
-struct GetStartedIllustration: View {
-    let animate: Bool
-
-    private let paletteColors = [
-        "#6C63FF", "#FF6B6B", "#2DD4BF", "#F59E0B", "#FF8C42",
-        "#F43F5E", "#0EA5E9", "#6DBF8A",
-    ]
-
-    private let badges = [
-        (icon: "lock.fill",          label: "Private"),
-        (icon: "xmark.circle",       label: "No Ads"),
-        (icon: "person.slash",       label: "No Account"),
-        (icon: "wifi.slash",         label: "Works Offline"),
-    ]
-
-    var body: some View {
-        VStack(spacing: 24) {
-            // Big colour strip
-            HStack(spacing: 3) {
-                ForEach(Array(paletteColors.enumerated()), id: \.offset) { i, hex in
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(hex: hex))
-                        .frame(height: 110)
-                        .opacity(animate ? 1 : 0)
-                        .scaleEffect(y: animate ? 1 : 0, anchor: .bottom)
-                        .animation(
-                            .spring(response: 0.6, dampingFraction: 0.72)
-                                .delay(Double(i) * 0.06),
-                            value: animate
-                        )
-                }
-            }
-            .padding(.horizontal, 28)
-
-            // Trust badges
-            HStack(spacing: 10) {
-                ForEach(Array(badges.enumerated()), id: \.offset) { i, badge in
-                    VStack(spacing: 5) {
-                        Image(systemName: badge.icon)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.6))
-                        Text(badge.label)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(Color(hex: "#1A1A1A").opacity(0.45))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white)
-                            .shadow(color: Color(hex: "#1A1A1A").opacity(0.05), radius: 8, y: 3)
-                    )
-                    .opacity(animate ? 1 : 0)
-                    .offset(y: animate ? 0 : 20)
-                    .animation(
-                        .spring(response: 0.55, dampingFraction: 0.8)
-                            .delay(0.3 + Double(i) * 0.07),
-                        value: animate
-                    )
-                }
-            }
-            .padding(.horizontal, 22)
+        .onAppear {
+            withAnimation(.spring(response: 0.65).delay(0.1)) { appeared = true }
         }
     }
-}
 
-
-// ═════════════════════════════════════════════════════════════
-// MARK: - PREVIEW
-// ═════════════════════════════════════════════════════════════
-
-#Preview {
-    OnboardingView()
+    private func neonOrb(_ hex: String) -> some View {
+        let col = Color(hex: hex)
+        return Circle()
+            .fill(col)
+            .frame(width: 24, height: 24)
+            .shadow(color: col.opacity(0.9), radius: 7)
+            .shadow(color: col.opacity(0.4), radius: 14)
+    }
 }
