@@ -188,7 +188,7 @@ struct SavedPaletteDetailView: View {
         .sheet(item: $colorToExport)           { ExportColorPreviewView(color: $0) }
         .sheet(isPresented: $showPaletteExport){ ExportPalettePreviewView(palette: palette) }
         .sheet(item: $colorToDetail)           { ColorDetailView(color: $0) }
-        .sheet(isPresented: $showWidgetPicker) { WidgetPickerView() }   // ← NEW
+        .sheet(isPresented: $showWidgetPicker) { WidgetPickerView(palette: palette) }   // ← NEW
     }
 
     private func deleteColor(_ color: SavedColor) {
