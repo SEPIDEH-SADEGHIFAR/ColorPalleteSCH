@@ -217,7 +217,56 @@ struct DetailColorRow: View {
 
     private var isCopied: Bool { copiedHex == color.hex }
 
+    // ── Swipe-to-delete state ──────────────────────────────────
+    // NOTE: `.swipeActions` (used further below) only works for rows
+    // inside a real SwiftUI `List`. This row lives in a plain VStack
+    // inside a ScrollView, so those swipeActions never actually trigger.
+    // This gesture-based implementation is what makes "swipe left to
+    // delete" actually work here.
+    @State private var swipeOffset: CGFloat = 0
+    private let deleteZoneWidth: CGFloat = 82
+
     var body: some View {
+        ZStack(alignment: .trailing) {
+            // Red delete zone revealed by swiping left
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.red)
+                .overlay(
+                    VStack(spacing: 4) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                        Text("Delete")
+                            .font(.system(size: 10, weight: .bold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.trailing, 18),
+                    alignment: .trailing
+                )
+                .opacity(swipeOffset < -6 ? 1 : 0)
+
+            rowContent
+                .offset(x: swipeOffset)
+                .gesture(swipeGesture)
+        }
+        .onTapGesture {
+            if swipeOffset != 0 {
+                withAnimation(.spring(response: 0.35)) { swipeOffset = 0 }
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive, action: onDelete) {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button(action: onEdit) {
+                Label("Edit", systemImage: "pencil")
+            }
+            .tint(Color(hex: "#6C63FF"))
+        }
+    }
+
+    private var rowContent: some View {
         HStack(spacing: 14) {
             RoundedRectangle(cornerRadius: 14)
                 .fill(Color(hex: color.hex))
@@ -267,16 +316,48 @@ struct DetailColorRow: View {
                         .stroke(Color("AppText").opacity(0.06), lineWidth: 1)
                 )
         )
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive, action: onDelete) {
-                Label("Delete", systemImage: "trash")
+    }
+
+    private var swipeGesture: some Gesture {
+        DragGesture(minimumDistance: 10)
+            .onChanged { (val: DragGesture.Value) in
+                handleSwipeChanged(val)
             }
+            .onEnded { (val: DragGesture.Value) in
+                handleSwipeEnded(val)
+            }
+    }
+
+    private func handleSwipeChanged(_ val: DragGesture.Value) {
+        let dx: CGFloat = val.translation.width
+        let dy: CGFloat = val.translation.height
+        // Ignore mostly-vertical drags so scrolling still works normally.
+        guard abs(dx) > abs(dy) * 1.1 else { return }
+        if dx < 0 {
+            swipeOffset = max(-deleteZoneWidth, dx * 0.88)
+        } else if swipeOffset < 0 {
+            swipeOffset = min(0, swipeOffset + dx * 0.5)
         }
-        .swipeActions(edge: .leading, allowsFullSwipe: false) {
-            Button(action: onEdit) {
-                Label("Edit", systemImage: "pencil")
+    }
+
+    private func handleSwipeEnded(_ val: DragGesture.Value) {
+        let dx: CGFloat = val.translation.width
+        let vel: CGFloat = val.predictedEndTranslation.width
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.76)) {
+            if dx < -(deleteZoneWidth * 0.85) || vel < -320 {
+                // Full swipe → animate fully off-screen, then delete.
+                swipeOffset = -UIScreen.main.bounds.width
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
+                    onDelete()
+                }
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            } else if dx < -(deleteZoneWidth * 0.38) {
+                // Partial swipe → reveal the delete zone and stop there.
+                swipeOffset = -deleteZoneWidth
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            } else {
+                swipeOffset = 0
             }
-            .tint(Color(hex: "#6C63FF"))
         }
     }
 }
